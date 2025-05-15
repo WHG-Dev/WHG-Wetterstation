@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MC Website</title>
+    <script type="module" crossorigin src="/assets/index-Qj0RD-2M.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-COwakLg4.css">
+  </head>
+  <body>
+    <main>
+      <div class="esp-selector-container">
+          <select class="esp-selector" id="espSelector">
+          </select>
+      </div>
+
+      <div class="container">
+        <div class="sun-stats">
+          <!--h2>Azimuth</h2>
+          <p id="azimuth"></p>
+
+          <h2>Höhe</h2>
+          <p id="altitude"></p-->
+
+          <h2>Sonnenaufgang</h2>
+          <p id="sunrise"></p>
+          
+          <h2>Sonnenuntergang</h2>
+          <p id="sunset"></p>
+        </div>
+        <div class="no-border-box">
+          <h1>Wetterstation</h1>
+          <h2 id="lastUpdate">letztes Update:</h2>
+        </div>
+        <div class="no-border-box">
+          
+        </div>
+        <div  class="box" id="temperatur">
+          <h2>Temperatur</h2>
+          <h3 id="currTemperature">Aktuell:0.0</h3>
+          <canvas class="chart" id="temperatur-chart"></canvas>
+        </div>
+        <div  class="box" id="airquality">
+          <h2>Luftqualität</h2>
+          <h3 id="currAirquality">Aktuell:0.0</h3>
+          <canvas class="chart" id="airquality-chart"></canvas>
+        </div>
+        <div  class="box" id="humidity">
+          <h2>Luftfeuchtigkeit</h2>
+          <h3 id="currHumidity">Aktuell:0.0</h3>
+          <canvas class="chart" id="humidity-chart"></canvas>
+        </div>
+      </div>
+    </main>
+
+    <canvas id="bg"></canvas>
+  </body>
+</html>
