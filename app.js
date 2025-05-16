@@ -13,6 +13,10 @@ server.use(cookieParser());
 server.use(express.urlencoded({extended: false}));
 server.use(express.static("public"));
 
+app.use((req, res, next) => {
+    next(createError(404));
+});
+
 const db = new sqlite3.Database('./weather.db', (err) => {
     if (err) {
         console.error('Database connection error:', err);
