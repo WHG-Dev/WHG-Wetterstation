@@ -14,7 +14,7 @@ server.use(cookieParser());
 server.use(express.urlencoded({extended: false}));
 server.use(express.static("public"));
 
-app.use((req, res, next) => {
+server.use((req, res, next) => {
     next(createError(404));
 });
 
