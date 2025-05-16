@@ -2,10 +2,15 @@ const express = require('express');
 const sqlite3 = require('sqlite3');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
 const server = express();
 
 server.use(cors());
 server.use(bodyParser.json());
+server.use(logger('dev'));
+server.use(cookieParser());
+server.use(express.urlencoded({extended: false}));
 server.use(express.static("public"));
 
 const db = new sqlite3.Database('./weather.db', (err) => {
