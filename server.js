@@ -1,16 +1,25 @@
+const createError = require('http-errors');
 const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const path = require('path');
 
 const app = express();
 const port = 3000;
 
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
 app.use(cors());
-app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use((req, res, next) => {
+    next(createError(404));
+});
 
 //Initi db
 const db = new sqlite3.Database('./weather.db', (err) => {
@@ -76,6 +85,10 @@ app.post('/api/weather', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+app.get('/', (req, res) => {
+    res.render('index.html');
+})
 
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
