@@ -1,12 +1,22 @@
+const createError = require('http-errors');
 const express = require('express');
 const sqlite3 = require('sqlite3');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
 const server = express();
 
 server.use(cors());
 server.use(bodyParser.json());
+server.use(logger('dev'));
+server.use(cookieParser());
+server.use(express.urlencoded({extended: false}));
 server.use(express.static("public"));
+
+server.use((req, res, next) => {
+    next(createError(404));
+});
 
 const db = new sqlite3.Database('./weather.db', (err) => {
     if (err) {
@@ -110,6 +120,9 @@ server.get('/api/weather/:name', async (req, res) => {
     }
 });
 
+server.get('/', (req, res) => {
+    res.render('index');
+})
 
 server.listen(8080,() =>
     {console.log("Server gestartet auf port 8080")}
