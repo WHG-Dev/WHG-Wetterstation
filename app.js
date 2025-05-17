@@ -14,9 +14,9 @@ server.use(cookieParser());
 server.use(express.urlencoded({extended: false}));
 server.use(express.static("public"));
 
-server.use((req, res, next) => {
-    next(createError(404));
-});
+//server.use((req, res, next) => {
+//    next(createError(404));
+//});
 
 const db = new sqlite3.Database('./weather.db', (err) => {
     if (err) {
@@ -25,6 +25,8 @@ const db = new sqlite3.Database('./weather.db', (err) => {
         console.log('Connected to the SQLite database.');
     }
 });
+
+
 
 function ensureSenderTable(senderId) {
     return new Promise((resolve, reject) => {
@@ -82,12 +84,29 @@ server.post('/api/weather', async (req, res) => {
     }
 });
 
+server.get('/names', async (req, res) => {
+  const query = `
+    SELECT name FROM sqlite_master
+    WHERE type='table' AND name NOT LIKE 'sqlite_%';
+  `;
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error('Database query error:', err.message);
+      return res.status(500).json({ error: 'Failed to retrieve table names' });
+    }
+
+    const tableNames = rows.map(row => row.name);
+    res.json({ tables: tableNames });
+  });
+});
+
 server.get('/api/weather/:name', async (req, res) => {
     const senderId = req.params.name;
 
-    //if (!senderId || !senderId.match(/^H\d{3}$/)) {
-    //    return res.status(400).json({ error: 'Invalid sender name format' });
-    //}
+    // if (!senderId || !senderId.match(/^H\d{3}$/)) {
+    //     return res.status(400).json({ error: 'Invalid sender name format' });
+    // }
 
     const tableName = `sender_${senderId}`;
 
@@ -104,21 +123,40 @@ server.get('/api/weather/:name', async (req, res) => {
         });
 
         if (!tableExists) {
-            return res.status(404).json({ error: `No data found for sender ${senderId}` });
+            return res.status(404).json({ error: `Keine Daten gefunden fuer Sender ID: ${senderId}` });
         }
 
-        db.all(`SELECT * FROM ${tableName} ORDER BY time DESC`, [], (err, rows) => {
-            if (err) {
-                console.error('Database error:', err);
-                return res.status(500).json({ error: err.message });
+        // Get one entry per hour for the last 5 hours
+        db.all(
+            `
+            SELECT * FROM (
+                SELECT 
+                    *, 
+                    strftime('%Y-%m-%d %H:00:00', time) as hour_group
+                FROM ${tableName}
+                WHERE time >= datetime('now', '-6 hours')
+                ORDER BY time DESC
+            )
+            GROUP BY hour_group
+            ORDER BY hour_group DESC
+            LIMIT 5;
+            `,
+            [],
+            (err, rows) => {
+                if (err) {
+                    console.error('Database error:', err);
+                    return res.status(500).json({ error: err.message });
+                }
+
+                res.json({ sender: senderId, count: rows.length, data: rows });
             }
-            res.json({ sender: senderId, count: rows.length, data: rows });
-        });
+        );
     } catch (err) {
         console.error('Error fetching data:', err);
         res.status(500).json({ error: err.message });
     }
 });
+
 
 
 server.listen(8080,() =>
