@@ -1,3 +1,4 @@
+const createError = require('http-errors');
 const express = require('express');
 const sqlite3 = require('sqlite3');
 const bodyParser = require('body-parser');
@@ -125,13 +126,12 @@ server.get('/api/weather/:name', async (req, res) => {
             return res.status(404).json({ error: `Keine Daten gefunden fuer Sender ID: ${senderId}` });
         }
 
-        // Get one entry per hour for the last 5 hours
         db.all(
             `
             SELECT * FROM (
                 SELECT 
                     *, 
-                    strftime('%Y-%m-%d %H:00:00', time) as hour_group
+                    strftime('%Y-%m-%d %H:00:00', timestamp) as hour_group
                 FROM ${tableName}
                 WHERE time >= datetime('now', '-6 hours')
                 ORDER BY time DESC
