@@ -56,8 +56,43 @@ function ensureSenderTable(senderId) {
     });
 }
 
-//API endp.
+
 server.post('/api/weather', async (req, res) => {
+    const { temperature, humidity, gasval, time, hour, name } = req.body;
+    const senderId = name;
+
+    //if (!senderId || !senderId.match(/^H\d{3}$/)) {
+    //   return res.status(400).json({ error: 'Invalid sender name format' });
+    //}
+
+    try {
+        await ensureSenderTable(senderId);
+
+        const dataJson = JSON.stringify(req.body);
+
+        db.run(
+            `INSERT INTO sender_${senderId} ( temperature, humidity, gasval, time, hour, data_json) 
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [temperature, humidity, gasval, time, hour, dataJson],
+            function(err) {
+                if (err) {
+                    console.error('Database error:', err);
+                    return res.status(500).json({ error: err.message });
+                }
+                res.json({
+                    status: 'success',
+                    sender: senderId,
+                    id: this.lastID
+                });
+            }
+        );
+    } catch (err) {
+        console.error('Error processing data:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+server.post('/api/weatherbatch/', async (req, res) => {
     const { temperature, humidity, gasval, time, hour, name } = req.body;
     const senderId = name;
 
@@ -139,7 +174,7 @@ server.get('/api/weather/:name', async (req, res) => {
             SELECT * FROM (
                 SELECT 
                     *, 
-                    strftime('%Y-%m-%d %H:00:00', time) as hour_group
+                    strftime('%Y-%m-%d %H:00:00', timestamp) as hour_group
                 FROM ${tableName}
                 WHERE time >= datetime('now', '-6 hours')
                 ORDER BY time DESC
