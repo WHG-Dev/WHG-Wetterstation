@@ -26,7 +26,15 @@ const db = new sqlite3.Database('./weather.db', (err) => {
     }
 });
 
-
+/*
+for (let i = 1; i <= 5; i++) {
+    const hours_ago = i;
+    db.run(
+        `INSERT INTO sender_test (time, temperature, humidity) VALUES (datetime('now', ?), ?, ?)`,
+        [`-${hours_ago} hours`, 20 + i, 50 + i]
+    );
+}
+*/
 
 function ensureSenderTable(senderId) {
     return new Promise((resolve, reject) => {
@@ -131,7 +139,7 @@ server.get('/api/weather/:name', async (req, res) => {
             SELECT * FROM (
                 SELECT 
                     *, 
-                    strftime('%Y-%m-%d %H:00:00', timestamp) as hour_group
+                    strftime('%Y-%m-%d %H:00:00', time) as hour_group
                 FROM ${tableName}
                 WHERE time >= datetime('now', '-6 hours')
                 ORDER BY time DESC
