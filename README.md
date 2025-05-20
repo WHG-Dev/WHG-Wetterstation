@@ -1,2 +1,2 @@
 # WHG-Wetterstation
-Ein echt schwules Projekt des Werner-Heisenberg Gymnasiums im Auftrag von Dr. Hill. kostenpunkt liegt bei weit mehr als 3k. Herr hilliblli ist sauer
+DAS UNFASSBAR GUTE, NEUE PROJEKT VOM WERNER HEISENBERG GYMNASIUM LEVERKUSEN; WOW ES IST SO TOLL!
