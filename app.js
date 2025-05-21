@@ -14,9 +14,9 @@ server.use(cookieParser());
 server.use(express.urlencoded({extended: false}));
 server.use(express.static("public"));
 
-//server.use((req, res, next) => {
-//    next(createError(404));
-//});
+server.use((req, res, next) => {
+    next(createError(404));
+});
 
 const db = new sqlite3.Database('./weather.db', (err) => {
     if (err) {
@@ -199,6 +199,10 @@ server.get('/api/weather/:name', async (req, res) => {
     }
 });
 
+app.use((err, req, res, next) => {
+    res.status(err.status || 500);
+    res.send(err.message)
+});
 
 
 server.listen(8080,() =>
