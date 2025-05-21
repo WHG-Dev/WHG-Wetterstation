@@ -26,7 +26,7 @@ const db = new sqlite3.Database('./weather.db', (err) => {
     }
 });
 
-/*
+
 for (let i = 1; i <= 5; i++) {
     const hours_ago = i;
     db.run(
@@ -34,7 +34,7 @@ for (let i = 1; i <= 5; i++) {
         [`-${hours_ago} hours`, 20 + i, 50 + i]
     );
 }
-*/
+
 
 function ensureSenderTable(senderId) {
     return new Promise((resolve, reject) => {
@@ -93,38 +93,39 @@ server.post('/api/weather', async (req, res) => {
 });
 
 server.post('/api/weatherbatch/', async (req, res) => {
-    const { temperature, humidity, gasval, time, hour, name } = req.body;
-    const senderId = name;
-
-    //if (!senderId || !senderId.match(/^H\d{3}$/)) {
-    //   return res.status(400).json({ error: 'Invalid sender name format' });
-    //}
-
     try {
-        await ensureSenderTable(senderId);
+        for(const entry of req.body){
+            const { temperature, humidity, gasval, time, hour, name } = entry;
+            const senderId = name;
 
-        const dataJson = JSON.stringify(req.body);
+            //if (!senderId || !senderId.match(/^H\d{3}$/)) {
+            //   return res.status(400).json({ error: 'Invalid sender name format' });
+            //}
 
-        db.run(
-            `INSERT INTO sender_${senderId} ( temperature, humidity, gasval, time, hour, data_json) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [temperature, humidity, gasval, time, hour, dataJson],
-            function(err) {
-                if (err) {
-                    console.error('Database error:', err);
-                    return res.status(500).json({ error: err.message });
+            await ensureSenderTable(senderId);
+
+            const dataJson = JSON.stringify(entry);
+
+            db.run(
+                `INSERT INTO sender_${senderId} ( temperature, humidity, gasval, time, hour, data_json) 
+                VALUES (?, ?, ?, ?, ?, ?)`,
+                [temperature, humidity, gasval, time, hour, dataJson],
+                function(err) {
+                    if (err) {
+                        console.error('Database error:', err);
+                        throw new Error();;
+                        //return res.status(500).json({ error: err.message });
+                    }
                 }
-                res.json({
-                    status: 'success',
-                    sender: senderId,
-                    id: this.lastID
-                });
-            }
-        );
+            );
+        }
     } catch (err) {
         console.error('Error processing data:', err);
         res.status(500).json({ error: err.message });
     }
+    res.json({
+        status: 'success',
+    });
 });
 
 server.get('/names', async (req, res) => {
