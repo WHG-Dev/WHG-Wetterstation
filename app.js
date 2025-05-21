@@ -113,6 +113,7 @@ server.post('/api/weatherbatch/', async (req, res) => {
                 function(err) {
                     if (err) {
                         console.error('Database error:', err);
+                        throw new Error();;
                         //return res.status(500).json({ error: err.message });
                     }
                 }
