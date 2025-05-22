@@ -75,7 +75,7 @@ server.post('/api/weather', async (req, res) => {
             function(err) {
                 if (err) {
                     console.error('Database error:', err);
-                    return res.status(500).json({ error: err.message });
+                    return res.status(500).json({ status: 303, error: err.message });
                 }
                 res.json({
                     status: 'success',
@@ -86,7 +86,7 @@ server.post('/api/weather', async (req, res) => {
         );
     } catch (err) {
         console.error('Error processing data:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ status: 303, error: err.message });
     }
 });
 
@@ -126,7 +126,7 @@ server.post('/api/weatherbatch/', async (req, res) => {
     });
 });
 
-server.get('/names', async (req, res) => {
+server.get('/names', async (req, res, next) => {
   const query = `
     SELECT name FROM sqlite_master
     WHERE type='table' AND name NOT LIKE 'sqlite_%';
@@ -135,7 +135,7 @@ server.get('/names', async (req, res) => {
   db.all(query, [], (err, rows) => {
     if (err) {
       console.error('Database query error:', err.message);
-      return res.status(500).json({ error: 'Failed to retrieve table names' });
+      return next(createError(402,'Failed to retrieve table names'));
     }
 
     const tableNames = rows.map(row => row.name);
@@ -143,7 +143,7 @@ server.get('/names', async (req, res) => {
   });
 });
 
-server.get('/api/weather/:name', async (req, res) => {
+server.get('/api/weather/:name', async (req, res,next) => {
     const senderId = req.params.name;
 
     // if (!senderId || !senderId.match(/^H\d{3}$/)) {
@@ -165,7 +165,8 @@ server.get('/api/weather/:name', async (req, res) => {
         });
 
         if (!tableExists) {
-            return res.status(404).json({ error: `Keine Daten gefunden fuer Sender ID: ${senderId}` });
+            next(createError(404, `Keine Daten gefunden fuer Sender ID: ${senderId}`));
+            return;
         }
 
         db.all(
