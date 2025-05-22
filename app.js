@@ -14,9 +14,6 @@ server.use(cookieParser());
 server.use(express.urlencoded({extended: false}));
 server.use(express.static("public"));
 
-server.use((req, res, next) => {
-    next(createError(404));
-});
 
 const db = new sqlite3.Database('./weather.db', (err) => {
     if (err) {
@@ -27,13 +24,14 @@ const db = new sqlite3.Database('./weather.db', (err) => {
 });
 
 
-for (let i = 1; i <= 5; i++) {
+/*for (let i = 1; i <= 5; i++) {
+
     const hours_ago = i;
     db.run(
         `INSERT INTO sender_test (time, temperature, humidity) VALUES (datetime('now', ?), ?, ?)`,
         [`-${hours_ago} hours`, 20 + i, 50 + i]
     );
-}
+}*/
 
 
 function ensureSenderTable(senderId) {
@@ -113,7 +111,7 @@ server.post('/api/weatherbatch/', async (req, res) => {
                 function(err) {
                     if (err) {
                         console.error('Database error:', err);
-                        throw new Error();;
+                        throw new Error();
                         //return res.status(500).json({ error: err.message });
                     }
                 }
@@ -199,10 +197,13 @@ server.get('/api/weather/:name', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+server.use((req, res, next) => {
+    next(createError(404));
+});
 
-app.use((err, req, res, next) => {
+server.use((err, req, res, next) => {
     res.status(err.status || 500);
-    res.send(err.message)
+    res.send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
 });
 
 
