@@ -42,9 +42,10 @@ function ensureSenderTable(senderId) {
                 temperature REAL,
                 humidity REAL,
                 gasval INTEGER,
-                time TEXT,
+                unix BIGINT,
                 hour INTEGER,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                name TEXT,
                 data_json TEXT
             )
         `, (err) => {
@@ -91,13 +92,11 @@ server.post('/api/weather', async (req, res) => {
 });
 
 server.post('/api/weatherbatch/', async (req, res) => {
-    console.log(req.body);
     try {
         for(const entry of req.body){
-            const {id, temperature, humidity, gasval, time, hour, name } = entry;
+            const {id, temperature, humidity, gasval, unix, hour, name } = entry;
             const senderId = id;
-            console.log(name);
-            console.log(temperature);
+            if (id === -1) continue;
 
             //if (!senderId || !senderId.match(/^H\d{3}$/)) {
             //   return res.status(400).json({ error: 'Invalid sender name format' });
@@ -108,9 +107,9 @@ server.post('/api/weatherbatch/', async (req, res) => {
             const dataJson = JSON.stringify(entry);
 
             db.run(
-                `INSERT INTO sender_${senderId} ( temperature, humidity, gasval, time, hour, data_json) 
-                VALUES (?, ?, ?, ?, ?, ?)`,
-                [temperature, humidity, gasval, time, hour, dataJson],
+                `INSERT INTO sender_${senderId} ( temperature, humidity, gasval, unix, hour, name, data_json) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [temperature, humidity, gasval, unix, hour, name, dataJson],
                 function(err) {
                     if (err) {
                         console.error('Database error:', err);
@@ -124,7 +123,7 @@ server.post('/api/weatherbatch/', async (req, res) => {
         console.error('Error processing data:', err);
         res.status(500).json({ error: err.message });
     }
-    res.json({
+    res.status(200).json({
         status: 'success',
     });
 });
@@ -206,8 +205,7 @@ server.use((req, res, next) => {
 });
 
 server.use((err, req, res, next) => {
-    res.status(err.status || 500);
-    res.send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
+    res.status(err.status || 500).send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
 });
 
 server.listen(8080,() =>
