@@ -91,10 +91,13 @@ server.post('/api/weather', async (req, res) => {
 });
 
 server.post('/api/weatherbatch/', async (req, res) => {
+    console.log(req.body);
     try {
         for(const entry of req.body){
-            const { temperature, humidity, gasval, time, hour, name } = entry;
-            const senderId = name;
+            const {id, temperature, humidity, gasval, time, hour, name } = entry;
+            const senderId = id;
+            console.log(name);
+            console.log(temperature);
 
             //if (!senderId || !senderId.match(/^H\d{3}$/)) {
             //   return res.status(400).json({ error: 'Invalid sender name format' });
@@ -206,7 +209,6 @@ server.use((err, req, res, next) => {
     res.status(err.status || 500);
     res.send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
 });
-
 
 server.listen(8080,() =>
     {console.log("Server gestartet auf port 8080")}
