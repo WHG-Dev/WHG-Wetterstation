@@ -91,7 +91,7 @@ server.post('/api/weather', async (req, res) => {
     }
 });
 
-server.post('/api/weatherbatch/', async (req, res) => {
+server.post('/api/weatherbatch/', async (req, res,next) => {
     try {
         for(const entry of req.body){
             const {id, temperature, humidity, gasval, unix, hour, name } = entry;
@@ -113,15 +113,14 @@ server.post('/api/weatherbatch/', async (req, res) => {
                 function(err) {
                     if (err) {
                         console.error('Database error:', err);
-                        throw new Error();
-                        //return res.status(500).json({ error: err.message });
+                        return next(createError(500,err.message));
                     }
                 }
             );
         }
     } catch (err) {
         console.error('Error processing data:', err);
-        res.status(500).json({ error: err.message });
+        return next(createError(500,err.message));
     }
     res.status(200).json({
         status: 'success',
@@ -192,7 +191,7 @@ server.get('/api/weather/:name', async (req, res,next) => {
                     return res.status(500).json({ error: err.message });
                 }
 
-                res.json({ sender: senderId, count: rows.length, data: rows });
+                res.status(200).json({ sender: senderId, count: rows.length, data: rows });
             }
         );
     } catch (err) {
