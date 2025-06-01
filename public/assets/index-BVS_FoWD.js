@@ -25833,8 +25833,7 @@ function Gw(i) {
 
 function Ww(i) {
     console.log(i), Hw.textContent = "Aktuell:" + i.temperature.toFixed(2) + "°C", zw.textContent = "Aktuell:" + i.humidity.toFixed(2) + "%", Vw.textContent = "Aktuell:" + i.gasval + "ppm", pm.textContent = "letztes Update:" + i.time;
-    const t = new Date, [e, n] = i.time.split(":").map(Number);
-    t.setHours(e, n, 0, 0);
+    const t = new Date(i.unix);
     const s = Hv(Sf, Ef, t), r = Vv(Sf, Ef, t);
     kw.textContent = s.getHours().toString().padStart(2, "0") + ":" + s.getMinutes().toString().padStart(2, "0"), Bw.textContent = r.getHours().toString().padStart(2, "0") + ":" + r.getMinutes().toString().padStart(2, "0")
 }

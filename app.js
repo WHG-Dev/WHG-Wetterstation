@@ -82,8 +82,8 @@ function ensureSenderTable(senderId) {
 }
 
 server.post('/api/weather', async (req, res) => {
-    const {temperature, humidity, gasval, time, hour, name} = req.body;
-    const senderId = name;
+    const {id, temperature, humidity, gasval, time, hour, name} = req.body;
+    const senderId = id;
 
     //if (!senderId || !senderId.match(/^H\d{3}$/)) {
     //   return res.status(400).json({ error: 'Invalid sender name format' });
@@ -182,16 +182,14 @@ server.get('/api/weather/:name', async (req, res, next) => {
     //     return res.status(400).json({ error: 'Invalid sender name format' });
     // }
 
-    const tableName = `sender_${senderId}`;
 
     try {
         const tableExists = await new Promise((resolve, reject) => {
             db.get(
                 `SELECT name
                  FROM sqlite_master
-                 WHERE type = 'table'
-                   AND name = ?`,
-                [tableName],
+                 WHERE type = 'table' AND name = ?`,
+                [senderId],
                 (err, row) => {
                     if (err) return reject(err);
                     resolve(!!row);
@@ -209,9 +207,9 @@ server.get('/api/weather/:name', async (req, res, next) => {
                 SELECT *
                 FROM (SELECT *,
                              strftime('%Y-%m-%d %H:00:00', timestamp) as hour_group
-                      FROM ${tableName}
-                      WHERE time >= datetime('now', '-6 hours')
-                      ORDER BY time DESC)
+                      FROM ${senderId}
+                      WHERE timestamp >= datetime('now', '-6 hours')
+                      ORDER BY timestamp DESC)
                 GROUP BY hour_group
                 ORDER BY hour_group DESC LIMIT 5;
             `,
@@ -219,15 +217,15 @@ server.get('/api/weather/:name', async (req, res, next) => {
             (err, rows) => {
                 if (err) {
                     console.error('Database error:', err);
-                    return res.status(500).json({error: err.message});
+                    return next(createError(404,err.message));
                 }
 
-                res.status(200).json({sender: senderId, count: rows.length, data: rows});
+                res.status(200).json({data:rows});
             }
         );
     } catch (err) {
         console.error('Error fetching data:', err);
-        res.status(500).json({error: err.message});
+        return next(createError(500,err.message));
     }
 });
 server.use((req, res, next) => {
