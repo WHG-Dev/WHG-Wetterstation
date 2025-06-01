@@ -37,16 +37,31 @@ const db = new sqlite3.Database('./weather.db', (err) => {
 function ensureSenderTable(senderId) {
     return new Promise((resolve, reject) => {
         db.run(`
-            CREATE TABLE IF NOT EXISTS sender_${senderId} (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                temperature REAL,
-                humidity REAL,
-                gasval INTEGER,
-                unix BIGINT,
-                hour INTEGER,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                name TEXT,
-                data_json TEXT
+            CREATE TABLE IF NOT EXISTS sender_${senderId}
+            (
+                id
+                INTEGER
+                PRIMARY
+                KEY
+                AUTOINCREMENT,
+                temperature
+                REAL,
+                humidity
+                REAL,
+                gasval
+                INTEGER,
+                unix
+                BIGINT,
+                hour
+                INTEGER,
+                timestamp
+                DATETIME
+                DEFAULT
+                CURRENT_TIMESTAMP,
+                name
+                TEXT,
+                data_json
+                TEXT
             )
         `, (err) => {
             if (err) reject(err);
@@ -54,10 +69,20 @@ function ensureSenderTable(senderId) {
         });
     });
 }
-
+ function getSenderName(table) {
+    return new Promise((resolve, reject) => {
+        db.get(`SELECT *
+                FROM ${table}
+                ORDER BY id DESC`, [], (err, row) => {
+            if (err) {
+                reject(err);
+            }else resolve(row.name);
+        });
+    });
+}
 
 server.post('/api/weather', async (req, res) => {
-    const { temperature, humidity, gasval, time, hour, name } = req.body;
+    const {temperature, humidity, gasval, time, hour, name} = req.body;
     const senderId = name;
 
     //if (!senderId || !senderId.match(/^H\d{3}$/)) {
@@ -70,13 +95,13 @@ server.post('/api/weather', async (req, res) => {
         const dataJson = JSON.stringify(req.body);
 
         db.run(
-            `INSERT INTO sender_${senderId} ( temperature, humidity, gasval, time, hour, data_json) 
+            `INSERT INTO sender_${senderId} (temperature, humidity, gasval, time, hour, data_json)
              VALUES (?, ?, ?, ?, ?, ?)`,
             [temperature, humidity, gasval, time, hour, dataJson],
-            function(err) {
+            function (err) {
                 if (err) {
                     console.error('Database error:', err);
-                    return res.status(500).json({ status: 303, error: err.message });
+                    return res.status(500).json({status: 303, error: err.message});
                 }
                 res.json({
                     status: 'success',
@@ -87,14 +112,14 @@ server.post('/api/weather', async (req, res) => {
         );
     } catch (err) {
         console.error('Error processing data:', err);
-        res.status(500).json({ status: 303, error: err.message });
+        res.status(500).json({status: 303, error: err.message});
     }
 });
 
-server.post('/api/weatherbatch/', async (req, res,next) => {
+server.post('/api/weatherbatch/', async (req, res, next) => {
     try {
-        for(const entry of req.body){
-            const {id, temperature, humidity, gasval, unix, hour, name } = entry;
+        for (const entry of req.body) {
+            const {id, temperature, humidity, gasval, unix, hour, name} = entry;
             const senderId = id;
             if (id === -1) continue;
 
@@ -107,20 +132,20 @@ server.post('/api/weatherbatch/', async (req, res,next) => {
             const dataJson = JSON.stringify(entry);
 
             db.run(
-                `INSERT INTO sender_${senderId} ( temperature, humidity, gasval, unix, hour, name, data_json) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO sender_${senderId} (temperature, humidity, gasval, unix, hour, name, data_json)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 [temperature, humidity, gasval, unix, hour, name, dataJson],
-                function(err) {
+                function (err) {
                     if (err) {
                         console.error('Database error:', err);
-                        return next(createError(500,err.message));
+                        return next(createError(500, err.message));
                     }
                 }
             );
         }
     } catch (err) {
         console.error('Error processing data:', err);
-        return next(createError(500,err.message));
+        return next(createError(500, err.message));
     }
     res.status(200).json({
         status: 'success',
@@ -128,23 +153,29 @@ server.post('/api/weatherbatch/', async (req, res,next) => {
 });
 
 server.get('/names', async (req, res, next) => {
-  const query = `
-    SELECT name FROM sqlite_master
-    WHERE type='table' AND name NOT LIKE 'sqlite_%';
-  `;
+    const query = `
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+          AND name NOT LIKE 'sqlite_%';
+    `;
 
-  db.all(query, [], (err, rows) => {
-    if (err) {
-      console.error('Database query error:', err.message);
-      return next(createError(402,'Failed to retrieve table names'));
-    }
+    db.all(query, [], async (err, rows) => {
+        if (err) {
+            console.error('Database query error:', err.message);
+            return next(createError(402, err.message));
+        }
+        let names = {};
+        const tableNames = rows.map(row => row.name);
+        for(const table of tableNames) {
+            names[table]= await getSenderName(table);
+        }
+        res.status(200).json(names);
 
-    const tableNames = rows.map(row => row.name);
-    res.json({ tables: tableNames });
-  });
+    });
 });
 
-server.get('/api/weather/:name', async (req, res,next) => {
+server.get('/api/weather/:name', async (req, res, next) => {
     const senderId = req.params.name;
 
     // if (!senderId || !senderId.match(/^H\d{3}$/)) {
@@ -156,7 +187,10 @@ server.get('/api/weather/:name', async (req, res,next) => {
     try {
         const tableExists = await new Promise((resolve, reject) => {
             db.get(
-                `SELECT name FROM sqlite_master WHERE type='table' AND name = ?`,
+                `SELECT name
+                 FROM sqlite_master
+                 WHERE type = 'table'
+                   AND name = ?`,
                 [tableName],
                 (err, row) => {
                     if (err) return reject(err);
@@ -172,31 +206,28 @@ server.get('/api/weather/:name', async (req, res,next) => {
 
         db.all(
             `
-            SELECT * FROM (
-                SELECT 
-                    *, 
-                    strftime('%Y-%m-%d %H:00:00', timestamp) as hour_group
-                FROM ${tableName}
-                WHERE time >= datetime('now', '-6 hours')
-                ORDER BY time DESC
-            )
-            GROUP BY hour_group
-            ORDER BY hour_group DESC
-            LIMIT 5;
+                SELECT *
+                FROM (SELECT *,
+                             strftime('%Y-%m-%d %H:00:00', timestamp) as hour_group
+                      FROM ${tableName}
+                      WHERE time >= datetime('now', '-6 hours')
+                      ORDER BY time DESC)
+                GROUP BY hour_group
+                ORDER BY hour_group DESC LIMIT 5;
             `,
             [],
             (err, rows) => {
                 if (err) {
                     console.error('Database error:', err);
-                    return res.status(500).json({ error: err.message });
+                    return res.status(500).json({error: err.message});
                 }
 
-                res.status(200).json({ sender: senderId, count: rows.length, data: rows });
+                res.status(200).json({sender: senderId, count: rows.length, data: rows});
             }
         );
     } catch (err) {
         console.error('Error fetching data:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({error: err.message});
     }
 });
 server.use((req, res, next) => {
@@ -207,6 +238,7 @@ server.use((err, req, res, next) => {
     res.status(err.status || 500).send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
 });
 
-server.listen(8080,() =>
-    {console.log("Server gestartet auf port 8080")}
+server.listen(8080, () => {
+        console.log("Server gestartet auf port 8080")
+    }
 );
