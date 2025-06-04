@@ -236,6 +236,6 @@ server.use((err, req, res, next) => {
 });
 
 server.listen(8080, () => {
-        console.log("Server gestartet auf port 8080")
+        console.log("Server gestartet auf port 8080");
     }
 );
