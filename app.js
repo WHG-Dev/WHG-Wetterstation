@@ -24,14 +24,13 @@ const db = new sqlite3.Database('./weather.db', (err) => {
 });
 
 
-/*for (let i = 1; i <= 5; i++) {
+for (let i = 1; i <= 5; i++) {
 
-    const hours_ago = i;
     db.run(
-        `INSERT INTO sender_test (time, temperature, humidity) VALUES (datetime('now', ?), ?, ?)`,
-        [`-${hours_ago} hours`, 20 + i, 50 + i]
+        `INSERT INTO sender_1 (unix, temperature, humidity) VALUES (?, ?, ?)`,
+        [(Date.now() - i*60*60), 20 + i, 50 + i]
     );
-}*/
+}
 
 
 function ensureSenderTable(senderId) {
