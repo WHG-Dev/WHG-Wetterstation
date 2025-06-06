@@ -25832,7 +25832,7 @@ function Gw(i) {
 }
 
 function Ww(i) {
-    console.log(i), Hw.textContent = "Aktuell:" + i.temperature.toFixed(2) + "°C", zw.textContent = "Aktuell:" + i.humidity.toFixed(2) + "%", Vw.textContent = "Aktuell:" + i.gasval + "ppm", pm.textContent = "letztes Update:" + i.time;
+    Hw.textContent = "Aktuell:" + i.temperature.toFixed(2) + "°C", zw.textContent = "Aktuell:" + i.humidity.toFixed(2) + "%", Vw.textContent = "Aktuell:" + i.gasval + "ppm", pm.innerHTML = "letztes Update: \<br\>" + i.timestamp;
     const t = new Date(i.unix);
     const s = Hv(Sf, Ef, t), r = Vv(Sf, Ef, t);
     kw.textContent = s.getHours().toString().padStart(2, "0") + ":" + s.getMinutes().toString().padStart(2, "0"), Bw.textContent = r.getHours().toString().padStart(2, "0") + ":" + r.getMinutes().toString().padStart(2, "0")
@@ -25842,7 +25842,7 @@ function mm(i) {
     console.log(i.data), Ww(i.data[0]);
     var t = [], e = [], n = [], s = [];
     i.data.forEach(r => {
-        t.push(r.time), e.push(parseFloat(r.temperature)), n.push(parseFloat(r.humidity)), s.push(parseInt(r.gasval))
+        t.push(r.timestamp), e.push(parseFloat(r.temperature)), n.push(parseFloat(r.humidity)), s.push(parseInt(r.gasval))
     }), El.data.labels = t, El.data.datasets[0].data = n, El.update(), Sl.data.labels = t, Sl.data.datasets[0].data = s, Sl.update(), console.log(e), Ml.data.labels = t, Ml.data.datasets[0].data = e, Ml.update()
 }
 
