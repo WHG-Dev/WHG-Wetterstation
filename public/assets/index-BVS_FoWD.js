@@ -25962,7 +25962,7 @@ vm();
 
 function bm() {
     const i = window.innerWidth / window.innerHeight, t = 10;
-    vs.left = -10 * i, vs.right = t * i, vs.top = t, vs.bottom = -10, Vr.setSize(window.innerWidth, window.innerHeight), vs.updateProjectionMatrix()
+    vs.left = -10 * i, vs.right = t * i, vs.top = t, vs.bottom = -10, Vr.setSize(window.innerWidth, window.innerHeight); vs.updateProjectionMatrix(); Vr.setSize(window.innerWidth, window.innerHeight);
 }
 
 window.addEventListener("resize", bm, !1);

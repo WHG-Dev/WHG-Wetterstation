@@ -24,13 +24,7 @@ const db = new sqlite3.Database('./weather.db', (err) => {
 });
 
 
-for (let i = 1; i <= 5; i++) {
 
-    db.run(
-        `INSERT INTO sender_1 (unix, temperature, humidity) VALUES (?, ?, ?)`,
-        [(Date.now() - i*60*60), 20 + i, 50 + i]
-    );
-}
 
 
 function ensureSenderTable(senderId) {
@@ -68,6 +62,26 @@ function ensureSenderTable(senderId) {
         });
     });
 }
+async function insertTestData() {
+    return new Promise(async (resolve, reject) => {
+
+        await db.run(`DROP TABLE IF EXISTS sender_1`);
+        await ensureSenderTable(1);
+        for (let i = 1; i <= 5; i++) {
+
+            await db.run(
+                `INSERT INTO sender_1 (unix, temperature, humidity)
+                 VALUES (?, ?, ?)`,
+                [(Date.now().valueOf() - i * 3600000), 20 + i, 50 + i]
+            ,(err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+        }
+    });
+}
+insertTestData();
+
  function getSenderName(table) {
     return new Promise((resolve, reject) => {
         db.get(`SELECT *
@@ -176,18 +190,12 @@ server.get('/names', async (req, res, next) => {
 
 server.get('/api/weather/:name', async (req, res, next) => {
     const senderId = req.params.name;
-
-    // if (!senderId || !senderId.match(/^H\d{3}$/)) {
-    //     return res.status(400).json({ error: 'Invalid sender name format' });
-    // }
-
+    const fiveHoursAgo = Math.floor(Date.now() / 3600000 - 5) * 3600000;
 
     try {
         const tableExists = await new Promise((resolve, reject) => {
             db.get(
-                `SELECT name
-                 FROM sqlite_master
-                 WHERE type = 'table' AND name = ?`,
+                `SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?`,
                 [senderId],
                 (err, row) => {
                     if (err) return reject(err);
@@ -202,29 +210,22 @@ server.get('/api/weather/:name', async (req, res, next) => {
         }
 
         db.all(
-            `
-                SELECT *
-                FROM (SELECT *,
-                             strftime('%Y-%m-%d %H:00:00', timestamp) as hour_group
-                      FROM ${senderId}
-                      WHERE timestamp >= datetime('now', '-6 hours')
-                      ORDER BY timestamp DESC)
-                GROUP BY hour_group
-                ORDER BY hour_group DESC LIMIT 5;
-            `,
-            [],
+            `SELECT *
+            FROM ${senderId}
+            WHERE unix >= ?
+            ORDER BY unix DESC
+            LIMIT 5`,
+            [fiveHoursAgo],
             (err, rows) => {
                 if (err) {
-                    console.error('Database error:', err);
-                    return next(createError(404,err.message));
+                    next(createError(500, 'Fehler beim Abrufen der Daten'));
+                    return;
                 }
-
                 res.status(200).json({data:rows});
             }
         );
-    } catch (err) {
-        console.error('Error fetching data:', err);
-        return next(createError(500,err.message));
+    } catch (error) {
+        next(createError(500, 'Interner Serverfehler'));
     }
 });
 server.use((req, res, next) => {
@@ -234,6 +235,8 @@ server.use((req, res, next) => {
 server.use((err, req, res, next) => {
     res.status(err.status || 500).send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
 });
+
+
 
 server.listen(8080, () => {
         console.log("Server gestartet auf port 8080");
