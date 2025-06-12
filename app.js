@@ -67,7 +67,7 @@ async function insertTestData() {
 
         await db.run(`DROP TABLE IF EXISTS sender_1`);
         await ensureSenderTable(1);
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 15; i++) {
 
             await db.run(
                 `INSERT INTO sender_1 (unix, temperature, humidity)
@@ -187,7 +187,48 @@ server.get('/names', async (req, res, next) => {
 
     });
 });
+server.get('/api/weather/current/:name', async (req, res, next) =>
+{
+    const senderId = req.params.name;
 
+    try {
+        const tableExists = await new Promise((resolve, reject) => {
+            db.get(
+                `SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?`,
+                [senderId],
+                (err, row) => {
+                    if (err) return reject(err);
+                    resolve(!!row);
+                }
+            );
+        });
+
+        if (!tableExists) {
+            next(createError(404, `Keine Daten gefunden fuer Sender ID: ${senderId}`));
+            return;
+        }
+
+        db.get(
+            `SELECT *
+             FROM ${senderId}
+             ORDER BY id DESC
+             LIMIT 1`,
+            (err, row) => {
+                if (err) {
+                    next(createError(500, 'Fehler beim Abrufen der Daten'));
+                    return;
+                }
+                if (!row) {
+                    next(createError(404, 'Keine aktuellen Daten gefunden'));
+                    return;
+                }
+                res.status(200).json(row);
+            }
+        );
+    } catch (error) {
+        next(createError(500, 'Interner Serverfehler'));
+    }
+});
 server.get('/api/weather/:name', async (req, res, next) => {
     const senderId = req.params.name;
     const fiveHoursAgo = Math.floor(Date.now() / 3600000 - 5) * 3600000;
@@ -210,9 +251,17 @@ server.get('/api/weather/:name', async (req, res, next) => {
         }
 
         db.all(
-            `SELECT *
-            FROM ${senderId}
-            WHERE unix >= ?
+            `WITH HourlyData AS (
+                SELECT *,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY CAST(unix / 3600000 AS INTEGER)
+                        ORDER BY unix DESC
+                    ) as rn
+                FROM ${senderId}
+                WHERE unix >= ?
+            )
+            SELECT * FROM HourlyData 
+            WHERE rn = 1
             ORDER BY unix DESC
             LIMIT 5`,
             [fiveHoursAgo],
