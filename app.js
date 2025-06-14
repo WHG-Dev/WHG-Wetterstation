@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
+const e = require("express");
 const server = express();
 
 server.use(cors());
@@ -24,9 +25,6 @@ const db = new sqlite3.Database('./weather.db', (err) => {
 });
 
 
-
-
-
 function ensureSenderTable(senderId) {
     return new Promise((resolve, reject) => {
         db.run(`
@@ -41,7 +39,7 @@ function ensureSenderTable(senderId) {
                 REAL,
                 humidity
                 REAL,
-                gasval
+                bar
                 INTEGER,
                 unix
                 BIGINT,
@@ -62,34 +60,55 @@ function ensureSenderTable(senderId) {
         });
     });
 }
-async function insertTestData() {
-    return new Promise(async (resolve, reject) => {
 
-        await db.run(`DROP TABLE IF EXISTS sender_1`);
-        await ensureSenderTable(1);
-        for (let i = 1; i <= 15; i++) {
-
-            await db.run(
-                `INSERT INTO sender_1 (unix, temperature, humidity)
-                 VALUES (?, ?, ?)`,
-                [(Date.now().valueOf() - i * 3600000), 20 + i, 50 + i]
-            ,(err) => {
-                    if (err) reject(err);
-                    else resolve();
-                });
-        }
+function runQuery(query, params = []) {
+    return new Promise((resolve, reject) => {
+        db.run(query, params, function(err) {
+            if (err) reject(err);
+            else resolve(this);
+        });
     });
 }
+
+async function insertTestData() {
+    await runQuery('DROP TABLE IF EXISTS sender_1');
+    await ensureSenderTable('1')
+    let stmt = db.prepare(`
+        INSERT INTO sender_1 (temperature, humidity, bar, unix, hour, name, data_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    // Current Unix time in seconds
+    let currentTime = Math.floor(Date.now() / 1000);
+
+    // Generate test data from 10 hours ago to now (oldest to newest)
+    for (let i = 9; i >= 0; i--) {  // Start from the oldest (9 hours ago) to now
+        let timestamp = currentTime - (i * 3600); // i hours ago
+        let hour = new Date(timestamp * 1000).getHours();
+
+        let temperature = (Math.random() * 15 + 10).toFixed(2); // Random temp between 10-25°C
+        let humidity = (Math.random() * 50 + 30).toFixed(2); // Random humidity between 30-80%
+        let bar = Math.floor(Math.random() * 50 + 950); // Random pressure between 950-1000 hPa
+        let name = 'test_entry';
+        let dataJson = JSON.stringify({ note: `Test entry ${10 - i}` });
+
+        stmt.run(temperature, humidity, bar, timestamp, hour, name, dataJson);
+    }
+
+    // Finalize and close the database
+    stmt.finalize();
+}
+
 insertTestData();
 
- function getSenderName(table) {
+function getSenderName(table) {
     return new Promise((resolve, reject) => {
         db.get(`SELECT *
                 FROM ${table}
                 ORDER BY id DESC`, [], (err, row) => {
             if (err) {
                 reject(err);
-            }else resolve(row.name);
+            } else resolve(row.name);
         });
     });
 }
@@ -108,9 +127,9 @@ server.post('/api/weather', async (req, res) => {
         const dataJson = JSON.stringify(req.body);
 
         db.run(
-            `INSERT INTO sender_${senderId} (temperature, humidity, gasval, time, hour, data_json)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [temperature, humidity, gasval, time, hour, dataJson],
+            `INSERT INTO sender_${senderId} (temperature, humidity, gasval, time, hour, data_json,name)
+             VALUES (?, ?, ?, ?, ?, ?,?)`,
+            [temperature, humidity, gasval, time, hour, dataJson,name],
             function (err) {
                 if (err) {
                     console.error('Database error:', err);
@@ -180,21 +199,23 @@ server.get('/names', async (req, res, next) => {
         }
         let names = {};
         const tableNames = rows.map(row => row.name);
-        for(const table of tableNames) {
-            names[table]= await getSenderName(table);
+        for (const table of tableNames) {
+            names[table] = await getSenderName(table);
         }
         res.status(200).json(names);
 
     });
 });
-server.get('/api/weather/current/:name', async (req, res, next) =>
-{
+server.get('/api/weather/current/:name', async (req, res, next) => {
     const senderId = req.params.name;
 
     try {
         const tableExists = await new Promise((resolve, reject) => {
             db.get(
-                `SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?`,
+                `SELECT name
+                 FROM sqlite_master
+                 WHERE type = 'table'
+                   AND name = ?`,
                 [senderId],
                 (err, row) => {
                     if (err) return reject(err);
@@ -211,8 +232,7 @@ server.get('/api/weather/current/:name', async (req, res, next) =>
         db.get(
             `SELECT *
              FROM ${senderId}
-             ORDER BY id DESC
-             LIMIT 1`,
+             ORDER BY id DESC LIMIT 1`,
             (err, row) => {
                 if (err) {
                     next(createError(500, 'Fehler beim Abrufen der Daten'));
@@ -231,7 +251,6 @@ server.get('/api/weather/current/:name', async (req, res, next) =>
 });
 server.get('/api/weather/:name', async (req, res, next) => {
     const senderId = req.params.name;
-    const fiveHoursAgo = Math.floor(Date.now() / 3600000 - 5) * 3600000;
 
     try {
         const tableExists = await new Promise((resolve, reject) => {
@@ -251,26 +270,28 @@ server.get('/api/weather/:name', async (req, res, next) => {
         }
 
         db.all(
-            `WITH HourlyData AS (
-                SELECT *,
-                    ROW_NUMBER() OVER (
-                        PARTITION BY CAST(unix / 3600000 AS INTEGER)
-                        ORDER BY unix DESC
-                    ) as rn
-                FROM ${senderId}
-                WHERE unix >= ?
-            )
-            SELECT * FROM HourlyData 
-            WHERE rn = 1
-            ORDER BY unix DESC
-            LIMIT 5`,
-            [fiveHoursAgo],
+            `SELECT s.*
+             FROM sender_1 s
+                      INNER JOIN (
+                 -- Find the minimum unix timestamp for each hour
+                 SELECT strftime('%Y-%m-%d %H', unix, 'unixepoch') AS hour_group,
+                        MIN(unix) AS min_unix
+                 FROM sender_1
+                 WHERE unix >= strftime('%s', 'now', '-5 hours')
+                 GROUP BY hour_group
+             ) grouped
+                                 ON strftime('%Y-%m-%d %H', s.unix, 'unixepoch') = grouped.hour_group
+                                     AND s.unix = grouped.min_unix
+             ORDER BY s.unix DESC
+                 LIMIT 5;`,
+            [],
             (err, rows) => {
                 if (err) {
                     next(createError(500, 'Fehler beim Abrufen der Daten'));
                     return;
                 }
-                res.status(200).json({data:rows});
+                console.log('Gefundene Einträge:', rows.length);
+                res.status(200).json({data: rows});
             }
         );
     } catch (error) {
@@ -284,7 +305,6 @@ server.use((req, res, next) => {
 server.use((err, req, res, next) => {
     res.status(err.status || 500).send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
 });
-
 
 
 server.listen(8080, () => {
