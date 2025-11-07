@@ -7,7 +7,14 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const e = require("express");
 const server = express();
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
+const compr = require('compression');
 
+var domain= '87.106.45.28';
+
+server.use(compr());
 server.use(cors());
 server.use(bodyParser.json());
 server.use(logger('dev'));
@@ -306,8 +313,10 @@ server.use((err, req, res, next) => {
     res.status(err.status || 500).send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
 });
 
-
-server.listen(8080, () => {
-        console.log("Server gestartet auf port 8080");
-    }
-);
+var options = {
+	key:fs.readFileSync('key.pem'),
+	cert: fs.readFileSync('cert.pem'),
+};
+https.createServer(options, server).listen(5000, 'localhost', function() {
+	 console.log('HTTPS listening on port 443');
+});
