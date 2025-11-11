@@ -20,7 +20,7 @@ server.use(bodyParser.json());
 server.use(logger('dev'));
 server.use(cookieParser());
 server.use(express.urlencoded({extended: false}));
-server.use(express.static("public"));
+server.use(express.static("/root/WHG-Wetterstation/website/dist/"));
 
 
 const db = new sqlite3.Database('./weather.db', (err) => {
@@ -310,13 +310,13 @@ server.use((req, res, next) => {
 });
 
 server.use((err, req, res, next) => {
-    res.status(err.status || 500).send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
+    res.status(err.status || 500).send(`<h1>${err.message}</h1><h2>${err.status}</h2>`);
 });
 
 var options = {
 	key:fs.readFileSync('key.pem'),
 	cert: fs.readFileSync('cert.pem'),
 };
-https.createServer(options, server).listen(5000, 'localhost', function() {
+http.createServer(server).listen(5000, 'localhost', function() {
 	 console.log('HTTPS listening on port 443');
 });
