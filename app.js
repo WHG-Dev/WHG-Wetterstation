@@ -13,15 +13,15 @@ const https = require('https');
 const fs = require('fs');
 const compr = require('compression');
 
-var domain= '87.106.45.28';
+var domain = '87.106.45.28';
 
 server.use(compr());
 server.use(cors());
 server.use(bodyParser.json());
 server.use(logger('dev'));
 server.use(cookieParser());
-server.use(express.urlencoded({extended: false}));
-server.use(express.static("/root/WHG-Wetterstation/website/dist/"));
+server.use(express.urlencoded({ extended: false }));
+server.use(express.static("./website/dist/"));
 
 
 const db = new sqlite3.Database('./weather.db', (err) => {
@@ -71,7 +71,7 @@ function ensureSenderTable(senderId) {
 
 function runQuery(query, params = []) {
     return new Promise((resolve, reject) => {
-        db.run(query, params, function(err) {
+        db.run(query, params, function (err) {
             if (err) reject(err);
             else resolve(this);
         });
@@ -79,53 +79,27 @@ function runQuery(query, params = []) {
 }
 
 async function insertTestData() {
-    await runQuery('DROP TABLE IF EXISTS sender_1');
-    await ensureSenderTable('1')
-    let stmt = db.prepare(`
-        INSERT INTO sender_1 (temperature, humidity, bar, unix, hour, name, data_json)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    // Current Unix time in seconds
-    let currentTime = Math.floor(Date.now() / 1000);
-
-    // Generate test data from 10 hours ago to now (oldest to newest)
-    for (let i = 9; i >= 0; i--) {  // Start from the oldest (9 hours ago) to now
-        let timestamp = currentTime - (i * 3600); // i hours ago
+    await db.run('DROP TABLE IF EXISTS sender_1');
+    await ensureSenderTable(1);
+    for (let i = 0; i <= 6; i++) {
+        const hours_ago = i;
+        let currentUnixTime = Math.floor(Date.now() / 1000);
+        let timestamp = currentUnixTime - (i * 3600);
         let hour = new Date(timestamp * 1000).getHours();
-
-        let temperature = (Math.random() * 15 + 10).toFixed(2); // Random temp between 10-25°C
-        let humidity = (Math.random() * 50 + 30).toFixed(2); // Random humidity between 30-80%
-        let bar = Math.floor(Math.random() * 50 + 950); // Random pressure between 950-1000 hPa
+        let temperature = (Math.random() * 15 + 10).toFixed(2);
+        let humidity = (Math.random() * 50 + 30).toFixed(2);
+        let bar = Math.floor(Math.random() * 50 + 950);
         let name = 'test_entry';
-        let dataJson = JSON.stringify({ note: `Test entry ${10 - i}` });
-
-        stmt.run(temperature, humidity, bar, timestamp, hour, name, dataJson);
+        let data_json = JSON.stringify({ test: '6767' })
+        await db.run(
+            `INSERT INTO sender_1 (temperature, humidity, bar, unix, hour, name, data_json) VALUES (?,?,?,?,?,?,?)`,
+            [temperature, humidity, bar, timestamp, hour, name, data_json]
+        )
     }
-
-    // Finalize and close the database
-    stmt.finalize();
+    
 }
 
-//insertTestData();
-db.run('DROP TABLE IF EXISTS sender_1');
-ensureSenderTable('1');
-for (let i = 1 ; i <= 7; i++){
-	const hours_ago = i;
-	let currentUnixTime = Math.floor(Date.now()/1000);
-	let timestamp = currentUnixTime - (i * 3600);
-	console.log(timestamp);
-	let hour = new Date(timestamp * 1000).getHours();
-	let temperature = (Math.random()*15+10).toFixed(2);
-	let humidity = (Math.random() * 50 + 30).toFixed(2);
-	let bar = Math.floor(Math.random() * 50 + 950);
-	let name = 'test_entry';
-	let data_json = JSON.stringify({ test:'6767'})
-	db.run(
-		`INSERT INTO sender_1 (temperature, humidity, bar, unix , hour, name ,data_json) VALUES (?,?,?,?,?,?,?)`,
-		[temperature, humidity, bar,timestamp, hour,name,data_json]
-	)
-}
+insertTestData();
 
 function getSenderName(table) {
     return new Promise((resolve, reject) => {
@@ -140,7 +114,7 @@ function getSenderName(table) {
 }
 
 server.post('/api/weather', async (req, res) => {
-    const {id, temperature, humidity, gasval, time, hour, name} = req.body;
+    const { id, temperature, humidity, gasval, time, hour, name } = req.body;
     const senderId = id;
 
     //if (!senderId || !senderId.match(/^H\d{3}$/)) {
@@ -155,11 +129,11 @@ server.post('/api/weather', async (req, res) => {
         db.run(
             `INSERT INTO sender_${senderId} (temperature, humidity, gasval, time, hour, data_json,name)
              VALUES (?, ?, ?, ?, ?, ?,?)`,
-            [temperature, humidity, gasval, time, hour, dataJson,name],
+            [temperature, humidity, gasval, time, hour, dataJson, name],
             function (err) {
                 if (err) {
                     console.error('Database error:', err);
-                    return res.status(500).json({status: 303, error: err.message});
+                    return res.status(500).json({ status: 303, error: err.message });
                 }
                 res.json({
                     status: 'success',
@@ -170,14 +144,14 @@ server.post('/api/weather', async (req, res) => {
         );
     } catch (err) {
         console.error('Error processing data:', err);
-        res.status(500).json({status: 303, error: err.message});
+        res.status(500).json({ status: 303, error: err.message });
     }
 });
 
 server.post('/api/weatherbatch/', async (req, res, next) => {
     try {
         for (const entry of req.body) {
-            const {id, temperature, humidity, gasval, unix, hour, name} = entry;
+            const { id, temperature, humidity, gasval, unix, hour, name } = entry;
             const senderId = id;
             if (id === -1) continue;
 
@@ -296,20 +270,18 @@ server.get('/api/weather/:name', async (req, res, next) => {
         }
 
         db.all(
-            `SELECT s.*
-             FROM ${senderId} s
-                      INNER JOIN (
-                 -- Find the minimum unix timestamp for each hour
-                 SELECT strftime('%Y-%m-%d %H', unix, 'unixepoch') AS hour_group,
-                        MIN(unix) AS min_unix
-                 FROM ${senderId}
-                 WHERE unix >= strftime('%s', 'now', '-6 hours')
-                 GROUP BY hour_group
-             ) grouped
-                                 ON strftime('%Y-%m-%d %H', s.unix, 'unixepoch') = grouped.hour_group
-                                     AND s.unix = grouped.min_unix
-             ORDER BY s.unix DESC
-                 LIMIT 5;`,
+            `SELECT t.*
+FROM ${senderId} t
+JOIN (
+    SELECT strftime('%Y-%m-%d %H', unix, 'unixepoch') AS stunde,
+           MIN(unix) AS min_unix
+    FROM ${senderId}
+    WHERE unix >= strftime('%s', 'now') - 5*3600
+    GROUP BY stunde
+) s ON strftime('%Y-%m-%d %H', t.unix, 'unixepoch') = s.stunde
+     AND t.unix = s.min_unix
+ORDER BY t.unix ASC;
+`,
             [],
             (err, rows) => {
                 if (err) {
@@ -317,7 +289,7 @@ server.get('/api/weather/:name', async (req, res, next) => {
                     return;
                 }
                 console.log('Gefundene Einträge:', rows.length);
-                res.status(200).json({data: rows});
+                res.status(200).json({ data: rows });
             }
         );
     } catch (error) {
@@ -333,9 +305,9 @@ server.use((err, req, res, next) => {
 });
 
 var options = {
-	key:fs.readFileSync('key.pem'),
-	cert: fs.readFileSync('cert.pem'),
+    key: fs.readFileSync('key.pem'),
+    cert: fs.readFileSync('cert.pem'),
 };
-http.createServer(server).listen(5000, 'localhost', function() {
-	 console.log('HTTPS listening on port 443');
+http.createServer(server).listen(5000, 'localhost', function () {
+    console.log('HTTPS listening on port 443');
 });
