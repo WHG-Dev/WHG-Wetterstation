@@ -1,3 +1,4 @@
+
 const createError = require('http-errors');
 const express = require('express');
 const sqlite3 = require('sqlite3');
@@ -106,7 +107,25 @@ async function insertTestData() {
     stmt.finalize();
 }
 
-insertTestData();
+//insertTestData();
+db.run('DROP TABLE IF EXISTS sender_1');
+ensureSenderTable('1');
+for (let i = 1 ; i <= 7; i++){
+	const hours_ago = i;
+	let currentUnixTime = Math.floor(Date.now()/1000);
+	let timestamp = currentUnixTime - (i * 3600);
+	console.log(timestamp);
+	let hour = new Date(timestamp * 1000).getHours();
+	let temperature = (Math.random()*15+10).toFixed(2);
+	let humidity = (Math.random() * 50 + 30).toFixed(2);
+	let bar = Math.floor(Math.random() * 50 + 950);
+	let name = 'test_entry';
+	let data_json = JSON.stringify({ test:'6767'})
+	db.run(
+		`INSERT INTO sender_1 (temperature, humidity, bar, unix , hour, name ,data_json) VALUES (?,?,?,?,?,?,?)`,
+		[temperature, humidity, bar,timestamp, hour,name,data_json]
+	)
+}
 
 function getSenderName(table) {
     return new Promise((resolve, reject) => {
@@ -278,13 +297,13 @@ server.get('/api/weather/:name', async (req, res, next) => {
 
         db.all(
             `SELECT s.*
-             FROM sender_1 s
+             FROM ${senderId} s
                       INNER JOIN (
                  -- Find the minimum unix timestamp for each hour
                  SELECT strftime('%Y-%m-%d %H', unix, 'unixepoch') AS hour_group,
                         MIN(unix) AS min_unix
-                 FROM sender_1
-                 WHERE unix >= strftime('%s', 'now', '-5 hours')
+                 FROM ${senderId}
+                 WHERE unix >= strftime('%s', 'now', '-6 hours')
                  GROUP BY hour_group
              ) grouped
                                  ON strftime('%Y-%m-%d %H', s.unix, 'unixepoch') = grouped.hour_group
@@ -294,7 +313,7 @@ server.get('/api/weather/:name', async (req, res, next) => {
             [],
             (err, rows) => {
                 if (err) {
-                    next(createError(500, 'Fehler beim Abrufen der Daten'));
+                    next(createError(500, err));
                     return;
                 }
                 console.log('Gefundene Einträge:', rows.length);
@@ -302,7 +321,7 @@ server.get('/api/weather/:name', async (req, res, next) => {
             }
         );
     } catch (error) {
-        next(createError(500, 'Interner Serverfehler'));
+        next(createError(500, error));
     }
 });
 server.use((req, res, next) => {
@@ -310,7 +329,7 @@ server.use((req, res, next) => {
 });
 
 server.use((err, req, res, next) => {
-    res.status(err.status || 500).send(`<h1>${err.message}</h1><h2>${err.status}</h2>`);
+    res.status(err.status || 500).send(`<h1>${err.message}</h1><h2>${err.status}</h2><pre>${err.stack}</pre>`);
 });
 
 var options = {
