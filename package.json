@@ -5,6 +5,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "express-static-gzip": "^3.0.0",
     "http-errors": "^2.0.0",
     "morgan": "^1.10.0",
     "pm2": "^6.0.13",

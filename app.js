@@ -1,4 +1,3 @@
-
 const createError = require('http-errors');
 const express = require('express');
 const sqlite3 = require('sqlite3');
@@ -12,7 +11,7 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const compr = require('compression');
-
+const expressStaticGzip = require('express-static-gzip');
 var domain = '87.106.45.28';
 
 server.use(compr());
@@ -21,6 +20,17 @@ server.use(bodyParser.json());
 server.use(logger('dev'));
 server.use(cookieParser());
 server.use(express.urlencoded({ extended: false }));
+server.use(
+  expressStaticGzip(path.join("/root/WHG-Wetterstation/website/dist/"), {
+    enableBrotli: true,
+    orderPreference: ['br', 'gz'],
+    // Optional: Set caching headers for better performance
+    setHeaders: (res) => {
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    },
+  })
+);
+
 server.use(express.static("./website/dist/"));
 
 
@@ -89,7 +99,7 @@ async function insertTestData() {
         let temperature = (Math.random() * 15 + 10).toFixed(2);
         let humidity = (Math.random() * 50 + 30).toFixed(2);
         let bar = Math.floor(Math.random() * 50 + 950);
-        let name = 'test_entry';
+        let name = 'Schulgarten';
         let data_json = JSON.stringify({ test: '6767' })
         await db.run(
             `INSERT INTO sender_1 (temperature, humidity, bar, unix, hour, name, data_json) VALUES (?,?,?,?,?,?,?)`,
@@ -305,8 +315,8 @@ server.use((err, req, res, next) => {
 });
 
 var options = {
-    key: fs.readFileSync('key.pem'),
-    cert: fs.readFileSync('cert.pem'),
+    key: fs.readFileSync('cert.key'),
+    cert: fs.readFileSync('cert.crt'),
 };
 http.createServer(server).listen(5000, 'localhost', function () {
     console.log('HTTPS listening on port 443');
