@@ -100,7 +100,7 @@ router.post('/batch', async (req, res) => {
       const { id } = entry;
       
       // Skip invalid entries
-      if (!id || id === -1) continue;
+      if (typeof id == "undefined" || id === -1) continue;
       
       const senderId = String(id);
 
@@ -128,7 +128,7 @@ router.post('/batch', async (req, res) => {
         { alerts: allTriggeredAlerts }
       );
     }
-
+    console.log(req.body);
     res.status(200).json({
       status: 'success',
       processed: processedCount,
