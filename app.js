@@ -84,7 +84,7 @@ server.use((err, req, res, next) => {
 
 // HTTP Server
 http.createServer(server).listen(PORT, HOST, () => {
-  console.log(`🚀 HTTP Server läuft auf http://${HOST}:${PORT}`);
+  console.log(`HTTP Server läuft auf http://${HOST}:${PORT}`);
 });
 
 // HTTPS Server (Production - auskommentiert, da Zertifikate fehlen könnten)
@@ -96,23 +96,23 @@ try {
   };
   
   https.createServer(options, server).listen(443, () => {
-    console.log('🔒 HTTPS Server läuft auf Port 443');
+    console.log(' HTTPS Server läuft auf Port 443');
   });
 } catch (err) {
-  console.error('⚠️ HTTPS Zertifikate nicht gefunden:', err.message);
-  console.log('ℹ️ Server läuft nur im HTTP-Modus');
+  console.error(' HTTPS Zertifikate nicht gefunden:', err.message);
+  console.log('ℹ Server läuft nur im HTTP-Modus');
 }
 */
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n👋 Server wird heruntergefahren...');
+  console.log('\n Server wird heruntergefahren...');
   const db = require('./database/db');
   db.close((err) => {
     if (err) {
-      console.error('❌ Fehler beim Schließen der Datenbank:', err);
+      console.error('Fehler beim Schließen der Datenbank:', err);
     } else {
-      console.log('✅ Datenbankverbindung geschlossen');
+      console.log('Datenbankverbindung geschlossen');
     }
     process.exit(0);
   });

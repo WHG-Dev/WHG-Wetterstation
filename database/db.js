@@ -9,10 +9,10 @@ const dbPath = path.join(__dirname, '..', 'weather.db');
 
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
-    console.error('❌ Database connection error:', err);
+    console.error('Database connection error:', err);
     process.exit(1);
   } else {
-    console.log('✅ Connected to the SQLite database.');
+    console.log('Connected to the SQLite database.');
   }
 });
 

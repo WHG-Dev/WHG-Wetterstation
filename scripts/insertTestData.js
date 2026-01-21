@@ -11,13 +11,13 @@ const { ensureSenderTable, runQuery } = require('../database/queries');
  */
 async function insertTestData() {
   try {
-    console.log('🔄 Dropping existing test table...');
+    console.log('Dropping existing test table...');
     await runQuery('DROP TABLE IF EXISTS sender_1');
     
-    console.log('🔄 Creating sender_1 table...');
+    console.log('Creating sender_1 table...');
     await ensureSenderTable(1);
     
-    console.log('🔄 Inserting test data...');
+    console.log('Inserting test data...');
     const promises = [];
     
     for (let i = 0; i <= 6; i++) {
@@ -40,22 +40,22 @@ async function insertTestData() {
     }
     
     await Promise.all(promises);
-    console.log('✅ Test data inserted successfully!');
+    console.log('  Test data inserted successfully!');
     console.log(`   - ${promises.length} entries created`);
     console.log('   - Sender: Schulgarten (ID: 1)');
     
     // Close database connection
     db.close((err) => {
       if (err) {
-        console.error('❌ Error closing database:', err);
+        console.error('Error closing database:', err);
       } else {
-        console.log('✅ Database connection closed');
+        console.log('Database connection closed');
       }
       process.exit(0);
     });
     
   } catch (err) {
-    console.error('❌ Error inserting test data:', err);
+    console.error('Error inserting test data:', err);
     process.exit(1);
   }
 }

@@ -39,7 +39,7 @@ router.post('/', async (req, res, next) => {
       [temperature, humidity, gasval, time, hour, dataJson, name],
       function (err) {
         if (err) {
-          console.error('❌ Database error:', err);
+          console.error('Database error:', err);
           return res.status(500).json({ 
             status: 'error', 
             error: err.message 
@@ -54,7 +54,7 @@ router.post('/', async (req, res, next) => {
       }
     );
   } catch (err) {
-    console.error('❌ Error processing data:', err);
+    console.error('Error processing data:', err);
     res.status(500).json({ 
       status: 'error', 
       error: err.message 
@@ -110,7 +110,7 @@ router.post('/batch', async (req, res) => {
         
         processedCount++;
       } catch (err) {
-        console.error(`❌ Error processing entry for sender ${id}:`, err);
+        console.error(`Error processing entry for sender ${id}:`, err);
         errors.push({ senderId: id, error: err.message });
       }
     }
@@ -123,7 +123,7 @@ router.post('/batch', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Error processing batch data:', err);
+    console.error('Error processing batch data:', err);
     res.status(500).json({ 
       status: 'error',
       error: err.message 
@@ -161,7 +161,7 @@ router.get('/current/:name', async (req, res, next) => {
       }
     );
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('Error:', error);
     next(createError(500, 'Interner Serverfehler'));
   }
 });
@@ -199,11 +199,11 @@ router.get('/:name', async (req, res, next) => {
         return next(createError(500, err.message));
       }
       
-      console.log(`✅ Gefundene Einträge für ${senderId}:`, rows.length);
+      console.log(`Gefundene Einträge für ${senderId}:`, rows.length);
       res.status(200).json({ data: rows });
     });
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('Error:', error);
     next(createError(500, error.message));
   }
 });
@@ -234,14 +234,14 @@ router.get('/', async (req, res, next) => {
       try {
         names[table] = await getSenderName(table);
       } catch (err) {
-        console.error(`⚠️ Error getting name for table ${table}:`, err);
+        console.error(`Error getting name for table ${table}:`, err);
         names[table] = 'Unknown';
       }
     }
     
     res.status(200).json(names);
   } catch (err) {
-    console.error('❌ Database query error:', err.message);
+    console.error('Database query error:', err.message);
     next(createError(500, err.message));
   }
 });

@@ -27,7 +27,7 @@ function ensureSenderTable(senderId) {
     
     db.run(query, (err) => {
       if (err) {
-        console.error(`❌ Error creating table for sender ${senderId}:`, err);
+        console.error(`Error creating table for sender ${senderId}:`, err);
         reject(err);
       } else {
         resolve();
