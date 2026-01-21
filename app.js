@@ -59,7 +59,7 @@ server.get('/names', async (req, res, next) => {
     
     const names = {};
     senders.forEach(sender => {
-      names[`sender_${sender.sender_id}`] = sender.name;
+      names[`${sender.sender_id}`] = sender.name;
     });
     
     res.status(200).json(names);
