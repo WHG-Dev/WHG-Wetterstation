@@ -550,7 +550,8 @@
                 const dataPoints = sender.dataPoints;
                 if (dataPoints.length === 0) return;
 
-                const xOffset = (senderIndex - senders.length / 2) * senderSpacing;
+                // ✅ VERBESSERTE ZENTRIERUNG
+                const xOffset = (senderIndex - (senders.length - 1) / 2) * senderSpacing;
 
                 // Add sender label
                 createTextLabel(sender.sender.name, xOffset, -5, 0);
