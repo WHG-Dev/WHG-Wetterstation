@@ -18,8 +18,6 @@ CREATE TABLE IF NOT EXISTS senders (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_senders_sender_id ON senders(sender_id);
-
 -- ============================================================================
 -- 2. WEATHER_DATA TABLE
 -- ============================================================================
@@ -38,10 +36,6 @@ CREATE TABLE IF NOT EXISTS weather_data (
     raw_data_json TEXT,
     FOREIGN KEY (sender_id) REFERENCES senders(sender_id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_weather_sender_id ON weather_data(sender_id);
-CREATE INDEX IF NOT EXISTS idx_weather_unix_timestamp ON weather_data(unix_timestamp);
-CREATE INDEX IF NOT EXISTS idx_weather_sender_time ON weather_data(sender_id, unix_timestamp);
 
 -- ============================================================================
 -- 3. SENSOR_TYPES TABLE
@@ -107,8 +101,6 @@ CREATE TABLE IF NOT EXISTS weather_statistics (
     FOREIGN KEY (sender_id) REFERENCES senders(sender_id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_stats_sender_period ON weather_statistics(sender_id, period_start);
-
 -- ============================================================================
 -- 7. SYSTEM_LOGS TABLE
 -- ============================================================================
@@ -122,9 +114,6 @@ CREATE TABLE IF NOT EXISTS system_logs (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES senders(sender_id) ON DELETE SET NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_logs_created_at ON system_logs(created_at);
-CREATE INDEX IF NOT EXISTS idx_logs_level ON system_logs(log_level);
 
 -- ============================================================================
 -- VIEWS

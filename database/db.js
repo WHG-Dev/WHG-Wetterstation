@@ -8,6 +8,7 @@ const fs = require('fs');
 
 const dbPath = path.join(__dirname, '..', 'weather.db');
 const schemaPath = path.join(__dirname, 'schema.sql');
+const indexesPath = path.join(__dirname, 'indexes.sql');
 
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
@@ -23,18 +24,23 @@ const db = new sqlite3.Database(dbPath, (err) => {
 db.run('PRAGMA foreign_keys = ON');
 
 /**
- * Initialize database with schema
+ * Execute SQL file
  */
-async function initializeDatabase() {
+async function executeSqlFile(filePath, description) {
   try {
-    const schema = fs.readFileSync(schemaPath, 'utf8');
+    const sql = fs.readFileSync(filePath, 'utf8');
     
     // Split by semicolon but be careful with triggers
     const statements = [];
     let currentStatement = '';
     let inTrigger = false;
     
-    schema.split('\n').forEach(line => {
+    sql.split('\n').forEach(line => {
+      // Skip comment-only lines
+      if (line.trim().startsWith('--')) {
+        return;
+      }
+      
       currentStatement += line + '\n';
       
       // Check if we're entering a trigger
@@ -78,16 +84,37 @@ async function initializeDatabase() {
             });
           });
         } catch (err) {
-          console.error(`❌ Error executing statement ${i + 1}:`, err.message);
-          console.error('Statement:', statement.substring(0, 100) + '...');
+          console.error(`❌ Error in ${description} statement ${i + 1}:`, err.message);
+          // Don't throw - continue with other statements
         }
       }
     }
     
-    console.log(`✅ Database schema initialized (${executed}/${statements.length} statements executed)`);
+    console.log(`✅ ${description} completed (${executed} statements)`);
     
   } catch (err) {
-    console.error('❌ Error reading schema file:', err);
+    console.error(`❌ Error reading ${description} file:`, err);
+    throw err;
+  }
+}
+
+/**
+ * Initialize database with schema and indexes
+ */
+async function initializeDatabase() {
+  try {
+    // Step 1: Create tables (schema.sql)
+    await executeSqlFile(schemaPath, 'Schema');
+    
+    // Step 2: Create indexes (indexes.sql)
+    if (fs.existsSync(indexesPath)) {
+      await executeSqlFile(indexesPath, 'Indexes');
+    }
+    
+    console.log('✅ Database initialization complete\n');
+    
+  } catch (err) {
+    console.error('❌ Database initialization failed:', err);
   }
 }
 
