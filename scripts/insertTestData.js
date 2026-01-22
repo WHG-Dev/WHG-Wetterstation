@@ -46,7 +46,6 @@ async function insertTestData() {
       const humidity = (70 - timeOfDay * 20 + Math.random() * 10).toFixed(2);
       
       const pressure = Math.floor(1013 + Math.random() * 20 - 10);
-      const gasval = Math.floor(400 + Math.random() * 100);
       const battery = (95 - i * 0.5).toFixed(1); // Slowly decreasing
       
       promises.push(
@@ -54,7 +53,6 @@ async function insertTestData() {
           temperature: parseFloat(temperature),
           humidity: parseFloat(humidity),
           pressure: pressure,
-          gasval: gasval,
           battery_level: parseFloat(battery),
           unix: timestamp,
           hour: hour,
@@ -118,13 +116,13 @@ async function insertTestData() {
       
       // Higher humidity when students are present
       const humidity = (isSchoolHours ? 50 : 45 + Math.random() * 5).toFixed(2);
-      const gasval = Math.floor(isSchoolHours ? 600 : 400 + Math.random() * 50);
+      const pressure = Math.floor(isSchoolHours ? 1015 : 1013 + Math.random() * 5);
       
       promises3.push(
         insertWeatherData('H001', {
           temperature: parseFloat(temperature),
           humidity: parseFloat(humidity),
-          gasval: gasval,
+          pressure: pressure,
           unix: timestamp,
           hour: hour,
           name: 'Klassenzimmer 101'

@@ -27,9 +27,6 @@ CREATE TABLE IF NOT EXISTS weather_data (
     temperature REAL,
     humidity REAL,
     pressure INTEGER,
-    gas_value INTEGER,
-    bar INTEGER,
-    gasval INTEGER,
     light_level REAL,
     battery_level REAL,
     signal_strength INTEGER,
@@ -131,7 +128,6 @@ SELECT
     wd.temperature,
     wd.humidity,
     wd.pressure,
-    wd.gas_value,
     wd.battery_level,
     wd.unix_timestamp,
     wd.received_at

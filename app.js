@@ -100,6 +100,10 @@ server.get('/api', (req, res) => {
         'POST /api/weather/alerts': 'Create new alert',
         'GET /api/weather/alerts/:senderId': 'Get alerts for sender'
       },
+      visualization: {
+        'GET /api/weather/visualization/3d': 'Serve 3D visualization page',
+        'GET /api/weather/visualization/data': 'Get all sensor data for visualization'
+      },
       legacy: {
         'GET /names': 'Legacy endpoint - redirects to senders/list'
       },

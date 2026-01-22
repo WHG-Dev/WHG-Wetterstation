@@ -144,24 +144,20 @@ async function insertWeatherData(senderId, data) {
   // Handle all possible timestamp field names
   const timestamp = data.unix_timestamp || data.unix || data.time || Math.floor(Date.now() / 1000);
   
-  // Handle all possible pressure field names
+  // Handle all possible pressure field names (for backward compatibility)
   const pressure = data.pressure || data.bar || data.gasval || data.gas_value;
-  const gasval = data.gasval || data.gas_value;
   
   return runQuery(
     `INSERT INTO weather_data 
-     (sender_id, temperature, humidity, pressure, gas_value, bar, gasval,
+     (sender_id, temperature, humidity, pressure,
       light_level, battery_level, signal_strength, 
       unix_timestamp, unix, raw_data_json)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       senderId,
       data.temperature,
       data.humidity,
       pressure,
-      gasval,
-      pressure, // bar
-      gasval,   // gasval
       data.light_level,
       data.battery_level,
       data.signal_strength,
