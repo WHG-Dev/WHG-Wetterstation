@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Weather Data Visualization</title>
+    <title>3D Wetterdaten Visualisierung - WHG Wetterstation</title>
     <style>
         * {
             margin: 0;
@@ -32,18 +32,21 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 300px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            max-width: 320px;
             z-index:  100;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         #controls h2 {
             margin-bottom: 15px;
             color: #333;
-            font-size: 18px;
+            font-size: 20px;
+            font-weight: 600;
         }
         
         .control-group {
@@ -55,42 +58,56 @@
             margin-bottom: 5px;
             color: #666;
             font-size: 14px;
+            font-weight: 500;
         }
         
         .control-group select,
         .control-group input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
             font-size:  14px;
+            transition: border-color 0.3s;
+        }
+        
+        .control-group select:focus,
+        .control-group input:focus {
+            outline:  none;
+            border-color:  #667eea;
         }
         
         button {
             width: 100%;
-            padding:  10px;
-            background:  #667eea;
+            padding:  12px;
+            background:  linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
+            font-size: 15px;
+            font-weight:  600;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         
         button:hover {
-            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform:  translateY(0);
         }
         
         #info {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius:  10px;
-            box-shadow:  0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            font-size: 13px;
             color: #666;
             z-index: 100;
         }
@@ -100,13 +117,33 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px 50px;
-            border-radius:  10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 18px;
-            color: #667eea;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 40px 60px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            text-align: center;
             z-index: 200;
+        }
+        
+        #loading h3 {
+            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform:  rotate(360deg); }
         }
         
         .hidden {
@@ -117,26 +154,31 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
-            border-radius:  10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 300px;
-            z-index: 100;
+            border-radius:  12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            max-width: 320px;
+            z-index:  100;
         }
         
         #stats h3 {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #333;
-            font-size: 16px;
+            font-size: 18px;
+            font-weight: 600;
         }
         
         .stat-item {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #eee;
             font-size: 14px;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
         }
         
         .stat-label {
@@ -147,18 +189,40 @@
             font-weight:  bold;
             color: #667eea;
         }
+
+        .info-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .info-section small {
+            color: #999;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body>
     <div id="container">
-        <div id="loading">Lade Daten...</div>
+        <div id="loading">
+            <h3>Lade Wetterdaten...</h3>
+            <div class="spinner"></div>
+        </div>
         
         <div id="controls" class="hidden">
             <h2>🎛️ Steuerung</h2>
             
             <div class="control-group">
+                <label for="senderSelect">Sender auswählen:</label>
+                <select id="senderSelect">
+                    <option value="all">Alle Sender</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
                 <label for="timeRange">Zeitraum (Stunden):</label>
                 <select id="timeRange">
+                    <option value="1">1 Stunde</option>
                     <option value="6">6 Stunden</option>
                     <option value="12">12 Stunden</option>
                     <option value="24" selected>24 Stunden</option>
@@ -177,21 +241,25 @@
             </div>
             
             <div class="control-group">
-                <label for="dataType">Datenpunkt: </label>
+                <label for="dataType">Messwert:</label>
                 <select id="dataType">
-                    <option value="temperature">Temperatur</option>
-                    <option value="humidity">Luftfeuchtigkeit</option>
-                    <option value="gasval">Gaswert</option>
+                    <option value="temperature">Temperatur (°C)</option>
+                    <option value="humidity">Luftfeuchtigkeit (%)</option>
+                    <option value="pressure">Luftdruck (hPa)</option>
                 </select>
             </div>
             
             <button onclick="loadData()">🔄 Daten neu laden</button>
+
+            <div class="info-section">
+                <small>💡 Die Z-Achse zeigt die echte zeitliche Entwicklung</small>
+            </div>
         </div>
         
         <div id="stats" class="hidden">
             <h3>📊 Statistik</h3>
             <div class="stat-item">
-                <span class="stat-label">Sender: </span>
+                <span class="stat-label">Sender:</span>
                 <span class="stat-value" id="senderCount">-</span>
             </div>
             <div class="stat-item">
@@ -202,19 +270,31 @@
                 <span class="stat-label">Zeitraum:</span>
                 <span class="stat-value" id="timeRangeDisplay">-</span>
             </div>
+            <div class="stat-item">
+                <span class="stat-label">Min.  Abstand:</span>
+                <span class="stat-value" id="minInterval">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Max.  Abstand:</span>
+                <span class="stat-value" id="maxInterval">-</span>
+            </div>
         </div>
         
         <div id="canvas-container"></div>
         
         <div id="info" class="hidden">
-            🖱️ Maus:  Rotieren | 🎯 Rechtsklick: Bewegen | 🔍 Scroll: Zoom
+            🖱️ Maus ziehen:  Rotieren | 🔍 Mausrad: Zoom<br>
+            📊 Z-Achse = Zeit (echte Zeitabstände)
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min. js"></script>
     <script>
-        let scene, camera, renderer, controls;
+        let scene, camera, renderer;
         let currentData = null;
+        let allSendersData = null;
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
         
         // Initialize Three.js scene
         function initScene() {
@@ -223,7 +303,7 @@
             // Scene
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1a1a2e);
-            scene.fog = new THREE.Fog(0x1a1a2e, 50, 200);
+            scene.fog = new THREE.Fog(0x1a1a2e, 50, 300);
             
             // Camera
             camera = new THREE.PerspectiveCamera(
@@ -232,17 +312,17 @@
                 0.1,
                 1000
             );
-            camera.position.set(30, 30, 30);
+            camera. position.set(50, 50, 50);
             camera.lookAt(0, 0, 0);
             
             // Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(window. innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
             
             // Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
             
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -250,19 +330,19 @@
             directionalLight.castShadow = true;
             scene.add(directionalLight);
             
-            const pointLight = new THREE.PointLight(0x667eea, 1, 100);
-            pointLight.position. set(0, 20, 0);
-            scene. add(pointLight);
+            const pointLight = new THREE.PointLight(0x667eea, 1.2, 150);
+            pointLight.position.set(0, 30, 0);
+            scene.add(pointLight);
             
             // Grid helper
-            const gridHelper = new THREE.GridHelper(100, 50, 0x667eea, 0x333333);
+            const gridHelper = new THREE.GridHelper(150, 75, 0x667eea, 0x444444);
             scene.add(gridHelper);
             
             // Axes helper
-            const axesHelper = new THREE.AxesHelper(30);
+            const axesHelper = new THREE.AxesHelper(40);
             scene.add(axesHelper);
             
-            // Simple orbit controls (mouse-based)
+            // Mouse controls
             setupControls();
             
             // Handle window resize
@@ -272,14 +352,10 @@
             animate();
         }
         
-        // Simple orbit controls
         function setupControls() {
-            let isDragging = false;
-            let previousMousePosition = { x: 0, y: 0 };
-            
             renderer.domElement.addEventListener('mousedown', (e) => {
                 isDragging = true;
-                previousMousePosition = { x: e.clientX, y: e.clientY };
+                previousMousePosition = { x: e. clientX, y: e.clientY };
             });
             
             renderer.domElement.addEventListener('mousemove', (e) => {
@@ -290,26 +366,42 @@
                 
                 const rotationSpeed = 0.005;
                 
-                camera.position.x = camera.position.x * Math.cos(deltaX * rotationSpeed) 
-                                   - camera.position.z * Math.sin(deltaX * rotationSpeed);
-                camera. position.z = camera.position.z * Math.cos(deltaX * rotationSpeed) 
-                                   + camera.position.x * Math.sin(deltaX * rotationSpeed);
+                // Rotate camera around origin
+                const radius = Math.sqrt(
+                    camera.position.x ** 2 + 
+                    camera.position.y ** 2 + 
+                    camera.position.z ** 2
+                );
+                
+                const theta = Math.atan2(camera.position.z, camera.position.x);
+                const phi = Math.acos(camera.position.y / radius);
+                
+                const newTheta = theta - deltaX * rotationSpeed;
+                const newPhi = Math.max(0.1, Math.min(Math. PI - 0.1, phi - deltaY * rotationSpeed));
+                
+                camera.position.x = radius * Math.sin(newPhi) * Math.cos(newTheta);
+                camera.position.y = radius * Math.cos(newPhi);
+                camera.position.z = radius * Math.sin(newPhi) * Math.sin(newTheta);
                 
                 camera.lookAt(0, 0, 0);
                 
-                previousMousePosition = { x:  e.clientX, y: e.clientY };
+                previousMousePosition = { x: e.clientX, y: e. clientY };
             });
             
-            renderer.domElement. addEventListener('mouseup', () => {
+            renderer.domElement.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            renderer. domElement.addEventListener('mouseleave', () => {
                 isDragging = false;
             });
             
             renderer.domElement.addEventListener('wheel', (e) => {
                 e.preventDefault();
                 const zoomSpeed = 0.1;
-                const direction = e.deltaY > 0 ? 1 : -1;
+                const direction = e.deltaY > 0 ? 1.1 : 0.9;
                 
-                camera.position.multiplyScalar(1 + direction * zoomSpeed);
+                camera.position.multiplyScalar(direction);
             });
         }
         
@@ -324,18 +416,27 @@
             renderer.render(scene, camera);
         }
         
-        // Load data from API
         async function loadData() {
             const hours = document.getElementById('timeRange').value;
             document.getElementById('loading').classList.remove('hidden');
             
             try {
                 const response = await fetch(`/api/weather/visualization/data?hours=${hours}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response. json();
                 
-                currentData = data;
-                updateStats(data);
-                visualizeData(data);
+                allSendersData = data;
+                populateSenderSelect(data.senders);
+                
+                const selectedSender = document.getElementById('senderSelect').value;
+                currentData = filterDataBySender(data, selectedSender);
+                
+                updateStats(currentData);
+                visualizeData(currentData);
                 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('controls').classList.remove('hidden');
@@ -344,39 +445,91 @@
                 
             } catch (error) {
                 console.error('Error loading data:', error);
-                alert('Fehler beim Laden der Daten: ' + error. message);
+                alert('Fehler beim Laden der Daten:  ' + error.message);
                 document.getElementById('loading').classList.add('hidden');
             }
+        }
+        
+        function populateSenderSelect(senders) {
+            const select = document.getElementById('senderSelect');
+            const currentValue = select.value;
+            
+            // Clear existing options except "Alle Sender"
+            select.innerHTML = '<option value="all">Alle Sender</option>';
+            
+            // Add sender options
+            senders.forEach(sender => {
+                const option = document.createElement('option');
+                option.value = sender. sender. sender_id;
+                option.textContent = `${sender.sender.name} (${sender.sender.sender_id})`;
+                select.appendChild(option);
+            });
+            
+            // Restore previous selection if it exists
+            if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+                select.value = currentValue;
+            }
+        }
+        
+        function filterDataBySender(data, senderId) {
+            if (senderId === 'all') {
+                return data;
+            }
+            
+            const filteredSenders = data.senders.filter(s => s.sender. sender_id === senderId);
+            
+            return {
+                senders: filteredSenders,
+                hours: data.hours,
+                totalSenders: filteredSenders.length,
+                totalDataPoints: filteredSenders.reduce((sum, s) => sum + s.dataPoints.length, 0)
+            };
         }
         
         function updateStats(data) {
             document.getElementById('senderCount').textContent = data.totalSenders;
             document.getElementById('dataPointCount').textContent = data.totalDataPoints;
             document.getElementById('timeRangeDisplay').textContent = data.hours + 'h';
+            
+            // Calculate min/max time intervals
+            let minInterval = Infinity;
+            let maxInterval = 0;
+            
+            data.senders. forEach(sender => {
+                const points = sender.dataPoints;
+                for (let i = 1; i < points.length; i++) {
+                    const interval = points[i].unix_timestamp - points[i - 1].unix_timestamp;
+                    minInterval = Math.min(minInterval, interval);
+                    maxInterval = Math.max(maxInterval, interval);
+                }
+            });
+            
+            if (minInterval === Infinity) minInterval = 0;
+            
+            document.getElementById('minInterval').textContent = formatInterval(minInterval);
+            document. getElementById('maxInterval').textContent = formatInterval(maxInterval);
+        }
+        
+        function formatInterval(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) return `${Math.round(seconds / 60)}min`;
+            return `${Math.round(seconds / 3600)}h`;
         }
         
         function visualizeData(data) {
-            // Clear previous visualization
-            while(scene.children.length > 0) { 
-                const object = scene.children[0];
-                if (object.geometry) object.geometry.dispose();
-                if (object.material) object.material.dispose();
-                scene.remove(object);
-            }
+            // Clear previous visualization (except lights and helpers)
+            const objectsToRemove = [];
+            scene.children.forEach(child => {
+                if (child.type === 'Mesh' || child.type === 'Line' || child.type === 'Sprite') {
+                    objectsToRemove.push(child);
+                }
+            });
             
-            // Re-add lights and helpers
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight. position.set(50, 50, 50);
-            scene.add(directionalLight);
-            
-            const gridHelper = new THREE.GridHelper(100, 50, 0x667eea, 0x333333);
-            scene.add(gridHelper);
-            
-            const axesHelper = new THREE. AxesHelper(30);
-            scene.add(axesHelper);
+            objectsToRemove.forEach(obj => {
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) obj.material.dispose();
+                scene.remove(obj);
+            });
             
             // Get visualization settings
             const vizType = document.getElementById('visualizationType').value;
@@ -384,106 +537,224 @@
             
             // Create visualization
             const senders = data.senders;
-            const senderSpacing = 15;
+            const senderSpacing = 25;
             
             senders.forEach((sender, senderIndex) => {
                 const dataPoints = sender.dataPoints;
+                if (dataPoints.length === 0) return;
+                
                 const xOffset = (senderIndex - senders.length / 2) * senderSpacing;
                 
                 // Add sender label
-                const labelCanvas = document.createElement('canvas');
-                const context = labelCanvas.getContext('2d');
-                context.font = 'Bold 48px Arial';
-                context.fillStyle = 'white';
-                context.fillText(sender.sender. name, 0, 48);
+                createTextLabel(sender.sender.name, xOffset, -5, 0);
                 
-                const texture = new THREE.CanvasTexture(labelCanvas);
-                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-                const sprite = new THREE. Sprite(spriteMaterial);
-                sprite.position.set(xOffset, -5, 0);
-                sprite. scale.set(10, 5, 1);
-                scene.add(sprite);
+                // Find time range for this sender
+                const timestamps = dataPoints.map(p => p.unix_timestamp || p.unix);
+                const minTime = Math. min(...timestamps);
+                const maxTime = Math.max(...timestamps);
+                const timeRange = maxTime - minTime;
                 
-                // Visualize data points
-                const recentPoints = dataPoints.slice(-50); // Last 50 points
+                // Time scale:  map to Z axis (e.g., -30 to +30)
+                const zRange = 60;
+                const timeScale = timeRange > 0 ? zRange / timeRange : 1;
                 
-                recentPoints.forEach((point, pointIndex) => {
+                console.log(`Sender ${sender.sender.name}:  ${dataPoints.length} points, time range: ${formatInterval(timeRange)}`);
+                
+                // Visualize all data points with correct time spacing
+                dataPoints.forEach((point, pointIndex) => {
                     const value = point[dataType] || 0;
-                    const zPosition = (pointIndex - recentPoints.length / 2) * 0.5;
+                    const timestamp = point.unix_timestamp || point.unix;
                     
-                    let object;
+                    // Calculate Z position based on actual timestamp
+                    const zPosition = ((timestamp - minTime) * timeScale) - (zRange / 2);
                     
                     if (vizType === 'bars') {
-                        const height = Math.max(value * 0.5, 0.1);
-                        const geometry = new THREE.BoxGeometry(1, height, 0.3);
-                        const material = new THREE.MeshPhongMaterial({
-                            color: getColorForValue(value, dataType),
-                            emissive: getColorForValue(value, dataType),
-                            emissiveIntensity: 0.2
-                        });
-                        object = new THREE.Mesh(geometry, material);
-                        object. position.set(xOffset, height / 2, zPosition);
-                        
+                        createBar(value, dataType, xOffset, zPosition);
                     } else if (vizType === 'spheres') {
-                        const radius = Math.max(value * 0.05, 0.2);
-                        const geometry = new THREE.SphereGeometry(radius, 16, 16);
-                        const material = new THREE.MeshPhongMaterial({
-                            color: getColorForValue(value, dataType),
-                            emissive: getColorForValue(value, dataType),
-                            emissiveIntensity: 0.3
-                        });
-                        object = new THREE.Mesh(geometry, material);
-                        object. position.set(xOffset, value * 0.3, zPosition);
-                        
-                    } else if (vizType === 'lines') {
-                        if (pointIndex > 0) {
-                            const prevPoint = recentPoints[pointIndex - 1];
-                            const prevValue = prevPoint[dataType] || 0;
-                            const prevZ = (pointIndex - 1 - recentPoints.length / 2) * 0.5;
-                            
-                            const points = [];
-                            points.push(new THREE.Vector3(xOffset, prevValue * 0.3, prevZ));
-                            points.push(new THREE.Vector3(xOffset, value * 0.3, zPosition));
-                            
-                            const geometry = new THREE. BufferGeometry().setFromPoints(points);
-                            const material = new THREE.LineBasicMaterial({
-                                color: getColorForValue(value, dataType),
-                                linewidth: 2
-                            });
-                            object = new THREE.Line(geometry, material);
-                        }
-                    }
-                    
-                    if (object) {
-                        object.castShadow = true;
-                        object.receiveShadow = true;
-                        scene.add(object);
+                        createSphere(value, dataType, xOffset, zPosition);
+                    } else if (vizType === 'lines' && pointIndex > 0) {
+                        const prevPoint = dataPoints[pointIndex - 1];
+                        const prevValue = prevPoint[dataType] || 0;
+                        const prevTimestamp = prevPoint.unix_timestamp || prevPoint.unix;
+                        const prevZ = ((prevTimestamp - minTime) * timeScale) - (zRange / 2);
+                        createLine(prevValue, value, dataType, xOffset, prevZ, zPosition);
                     }
                 });
+                
+                // Add time markers
+                addTimeMarkers(xOffset, minTime, maxTime, zRange);
             });
+        }
+        
+        function addTimeMarkers(x, minTime, maxTime, zRange) {
+            const markerCount = 5;
+            const timeStep = (maxTime - minTime) / (markerCount - 1);
+            
+            for (let i = 0; i < markerCount; i++) {
+                const timestamp = minTime + (timeStep * i);
+                const z = (i / (markerCount - 1)) * zRange - (zRange / 2);
+                
+                const date = new Date(timestamp * 1000);
+                const timeStr = date.toLocaleTimeString('de-DE', { 
+                    hour: '2-digit', 
+                    minute:  '2-digit' 
+                });
+                
+                createSmallLabel(timeStr, x + 3, 0, z, 0.5);
+            }
+        }
+        
+        function createTextLabel(text, x, y, z) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+            
+            context.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.font = 'Bold 48px Arial';
+            context.fillStyle = '#333';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(text, canvas.width / 2, canvas. height / 2);
+            
+            const texture = new THREE. CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE. Sprite(spriteMaterial);
+            sprite.position.set(x, y, z);
+            sprite.scale.set(12, 3, 1);
+            scene.add(sprite);
+        }
+        
+        function createSmallLabel(text, x, y, z, scale = 1) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 64;
+            
+            context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            context.fillRect(0, 0, canvas. width, canvas.height);
+            
+            context.font = 'Bold 28px Arial';
+            context.fillStyle = '#666';
+            context.textAlign = 'center';
+            context. textBaseline = 'middle';
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.position.set(x, y, z);
+            sprite.scale.set(4 * scale, 1 * scale, 1);
+            scene.add(sprite);
+        }
+        
+        function createBar(value, dataType, x, z) {
+            const height = getScaledHeight(value, dataType);
+            const geometry = new THREE.BoxGeometry(1.5, height, 0.3);
+            const material = new THREE.MeshPhongMaterial({
+                color: getColorForValue(value, dataType),
+                emissive: getColorForValue(value, dataType),
+                emissiveIntensity: 0.3,
+                shininess: 30
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, height / 2, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+        }
+        
+        function createSphere(value, dataType, x, z) {
+            const radius = getScaledRadius(value, dataType);
+            const height = getScaledHeight(value, dataType);
+            const geometry = new THREE.SphereGeometry(radius, 16, 16);
+            const material = new THREE.MeshPhongMaterial({
+                color: getColorForValue(value, dataType),
+                emissive: getColorForValue(value, dataType),
+                emissiveIntensity:  0.4,
+                shininess: 50
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position. set(x, height * 0.5, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+        }
+        
+        function createLine(prevValue, value, dataType, x, prevZ, z) {
+            const prevHeight = getScaledHeight(prevValue, dataType);
+            const height = getScaledHeight(value, dataType);
+            
+            const points = [];
+            points.push(new THREE.Vector3(x, prevHeight * 0.5, prevZ));
+            points.push(new THREE.Vector3(x, height * 0.5, z));
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({
+                color: getColorForValue(value, dataType),
+                linewidth: 3
+            });
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+        }
+        
+        function getScaledHeight(value, dataType) {
+            if (dataType === 'temperature') {
+                return Math.max(value * 0.8, 0.5);
+            } else if (dataType === 'humidity') {
+                return Math. max(value * 0.3, 0.5);
+            } else if (dataType === 'pressure') {
+                return Math. max((value - 900) * 0.05, 0.5);
+            }
+            return 0.5;
+        }
+        
+        function getScaledRadius(value, dataType) {
+            if (dataType === 'temperature') {
+                return Math.max(value * 0.08, 0.3);
+            } else if (dataType === 'humidity') {
+                return Math.max(value * 0.03, 0.3);
+            } else if (dataType === 'pressure') {
+                return Math.max((value - 900) * 0.005, 0.3);
+            }
+            return 0.3;
         }
         
         function getColorForValue(value, dataType) {
             if (dataType === 'temperature') {
-                // Blue (cold) to Red (hot)
-                const normalized = Math.max(0, Math.min(1, (value - 0) / 40));
+                // Blue (cold) to Red (hot): -10°C to 40°C
+                const normalized = Math.max(0, Math.min(1, (value + 10) / 50));
                 return new THREE.Color(normalized, 0.2, 1 - normalized);
             } else if (dataType === 'humidity') {
-                // Light to dark blue
-                const normalized = Math.max(0, Math.min(1, value / 100));
-                return new THREE.Color(0.2, 0.5 + normalized * 0.5, 1);
-            } else {
-                // Green gradient
-                const normalized = Math.max(0, Math.min(1, value / 1000));
-                return new THREE. Color(normalized, 1 - normalized * 0.5, 0.3);
+                // Light to dark blue: 0% to 100%
+                const normalized = Math. max(0, Math.min(1, value / 100));
+                return new THREE.Color(0.3, 0.5 + normalized * 0.5, 1);
+            } else if (dataType === 'pressure') {
+                // Green gradient:  950 to 1050 hPa
+                const normalized = Math.max(0, Math.min(1, (value - 950) / 100));
+                return new THREE.Color(normalized * 0.5, 1 - normalized * 0.3, 0.3);
             }
+            return new THREE.Color(0.5, 0.5, 0.5);
         }
         
         // Event listeners
+        document.getElementById('senderSelect').addEventListener('change', () => {
+            if (allSendersData) {
+                const selectedSender = document.getElementById('senderSelect').value;
+                currentData = filterDataBySender(allSendersData, selectedSender);
+                updateStats(currentData);
+                visualizeData(currentData);
+            }
+        });
+        
         document.getElementById('timeRange').addEventListener('change', loadData);
+        
         document.getElementById('visualizationType').addEventListener('change', () => {
             if (currentData) visualizeData(currentData);
         });
+        
         document.getElementById('dataType').addEventListener('change', () => {
             if (currentData) visualizeData(currentData);
         });

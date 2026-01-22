@@ -425,12 +425,6 @@ router.get('/alerts/:senderId', async (req, res, next) => {
     next(createError(500, err.message));
   }
 });
-/**
- * GET /visualization/3d - Serve 3D visualization page
- */
-router.get('/visualization/3d', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/3d-visualization.html'));
-});
 
 /**
  * GET /visualization/data - Get all data for all senders for 3D visualization
