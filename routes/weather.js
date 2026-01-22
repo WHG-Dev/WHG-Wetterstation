@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
 const createError = require('http-errors');
 const {
   ensureSender,
@@ -422,6 +423,53 @@ router.get('/alerts/:senderId', async (req, res, next) => {
     console.error('❌ Error getting alerts:', err);
     await logEvent('error', 'get_alerts_failed', err.message, senderId);
     next(createError(500, err.message));
+  }
+});
+/**
+ * GET /visualization/3d - Serve 3D visualization page
+ */
+router.get('/visualization/3d', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/3d-visualization.html'));
+});
+
+/**
+ * GET /visualization/data - Get all data for all senders for 3D visualization
+ * Query params:  hours (default: 24)
+ */
+router.get('/visualization/data', async (req, res, next) => {
+  const hours = parseInt(req.query.hours) || 24;
+  
+  try {
+    const senders = await getAllSenders();
+    const visualizationData = [];
+    
+    for (const sender of senders) {
+      const data = await getWeatherDataRange(sender.sender_id, hours);
+      
+      visualizationData.push({
+        sender: sender,
+        dataPoints: data,
+        statistics: {
+          count: data.length,
+          avgTemperature: data.length > 0 ? 
+            data.reduce((sum, d) => sum + d.temperature, 0) / data.length : 0,
+          avgHumidity: data.length > 0 ? 
+            data.reduce((sum, d) => sum + d.humidity, 0) / data.length : 0
+        }
+      });
+    }
+    
+    res.status(200).json({
+      senders: visualizationData,
+      hours:  hours,
+      totalSenders: senders.length,
+      totalDataPoints: visualizationData.reduce((sum, s) => sum + s.dataPoints.length, 0)
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching visualization data:', error);
+    await logEvent('error', 'visualization_data_failed', error.message);
+    next(createError(500, error.message));
   }
 });
 
