@@ -28,7 +28,7 @@ const {
  * Body: { id, temperature, humidity, pressure, time/unix, hour, name }
  */
 router.post('/', async (req, res, next) => {
-  const { id, temperature, humidity, pressure, time, hour, name } = req.body;
+  const { id } = req.body;
   const senderId = String(id);
 
   // Validation

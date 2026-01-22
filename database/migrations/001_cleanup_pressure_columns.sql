@@ -18,7 +18,7 @@ WHERE pressure IS NULL AND bar IS NOT NULL;
 -- Note: SQLite doesn't support DROP COLUMN directly, so we need to recreate the table
 
 -- Create new table with clean schema
-CREATE TABLE IF NOT EXISTS weather_data_new (
+CREATE TABLE weather_data_new (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sender_id TEXT NOT NULL,
     temperature REAL,
