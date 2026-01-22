@@ -72,7 +72,7 @@ server.get('/names', async (req, res, next) => {
  * GET /visualization/3d - Serve 3D visualization page
  */
 server.get('/3d', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/3d-visualization.html'));
+  res.sendFile(path.join(__dirname, './public/3d-visualization.html'));
 });
 
 // Health check endpoint
