@@ -71,7 +71,7 @@ server.get('/names', async (req, res, next) => {
 /**
  * GET /visualization/3d - Serve 3D visualization page
  */
-router.get('/visualization/3d', (req, res) => {
+router.get('/3d', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/3d-visualization.html'));
 });
 
