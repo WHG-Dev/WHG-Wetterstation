@@ -295,31 +295,8 @@
         </div>
     </div>
 
-    <script>
-        // Three.js mit Fallback laden
-        (function loadThreeJS() {
-            const cdns = [
-                'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js',
-                'https://unpkg.com/three@0.128.0/build/three. min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three. min.js'
-            ];
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 
-            function tryLoad(index) {
-                if (index >= cdns.length) {
-                    alert('Three.js konnte nicht geladen werden. Bitte verwenden Sie Lösung 2.');
-                    return;
-                }
-
-                const script = document.createElement('script');
-                script.src = cdns[index];
-                script.onload = () => console.log('Three.js geladen von:', cdns[index]);
-                script.onerror = () => tryLoad(index + 1);
-                document.head.appendChild(script);
-            }
-
-            tryLoad(0);
-        })();
-    </script>
     <script>
         let scene, camera, renderer;
         let currentData = null;
