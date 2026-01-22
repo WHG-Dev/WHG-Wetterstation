@@ -25,10 +25,10 @@ const {
 
 /**
  * POST / - Single weather data entry
- * Body: { id, temperature, humidity, gasval/pressure, time/unix, hour, name }
+ * Body: { id, temperature, humidity, pressure, time/unix, hour, name }
  */
 router.post('/', async (req, res, next) => {
-  const { id, temperature, humidity, gasval, time, hour, name } = req.body;
+  const { id, temperature, humidity, pressure, time, hour, name } = req.body;
   const senderId = String(id);
 
   // Validation
@@ -74,7 +74,7 @@ router.post('/', async (req, res, next) => {
 
 /**
  * POST /batch - Batch weather data entry
- * Body: [{ id, temperature, humidity, gasval, unix, hour, name }, ...]
+ * Body: [{ id, temperature, humidity, pressure, unix, hour, name }, ...]
  */
 router.post('/batch', async (req, res) => {
   try {
@@ -452,9 +452,11 @@ router.get('/visualization/data', async (req, res, next) => {
         statistics: {
           count: data.length,
           avgTemperature: data.length > 0 ? 
-            data.reduce((sum, d) => sum + d.temperature, 0) / data.length : 0,
+            data.reduce((sum, d) => sum + (d.temperature || 0), 0) / data.length : 0,
           avgHumidity: data.length > 0 ? 
-            data.reduce((sum, d) => sum + d.humidity, 0) / data.length : 0
+            data.reduce((sum, d) => sum + (d.humidity || 0), 0) / data.length : 0,
+          avgPressure: data.length > 0 ? 
+            data.reduce((sum, d) => sum + (d.pressure || 0), 0) / data.length : 0
         }
       });
     }
