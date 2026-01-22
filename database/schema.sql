@@ -28,10 +28,13 @@ CREATE TABLE IF NOT EXISTS weather_data (
     humidity REAL,
     pressure INTEGER,
     gas_value INTEGER,
+    bar INTEGER,
+    gasval INTEGER,
     light_level REAL,
     battery_level REAL,
     signal_strength INTEGER,
     unix_timestamp BIGINT NOT NULL,
+    unix BIGINT,
     received_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     raw_data_json TEXT,
     FOREIGN KEY (sender_id) REFERENCES senders(sender_id) ON DELETE CASCADE
