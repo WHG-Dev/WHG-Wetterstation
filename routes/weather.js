@@ -196,11 +196,11 @@ router.get('/:senderId', async (req, res, next) => {
 
     const data = await getHourlySamples(senderId, hours);
     
-    console.log(`✅ Gefundene Einträge für ${senderId}:`, data.length);
+    console.log(`✅ Gefundene Einträge für ${senderId} (${hours}h):`, data.length);
+    console.log('📊 Sample data:', data.length > 0 ? data[0] : 'KEINE DATEN');
+    
     res.status(200).json({ 
-      sender: sender,
-      data: data,
-      hours: hours
+      data: data
     });
     
   } catch (error) {
