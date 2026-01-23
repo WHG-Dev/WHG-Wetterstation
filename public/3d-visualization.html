@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Wetterdaten Visualisierung - WHG Wetterstation</title>
+    <title>3D Visualisierung - WHG Wetterstation</title>
     <style>
         * {
+            color: white;
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #253949;
             overflow: hidden;
         }
 
@@ -23,209 +23,355 @@
             height: 100vh;
             position: relative;
         }
-
+        
         #canvas-container {
             width: 100%;
             height: 100%;
         }
 
+        /* Header angepasst an Website-Design */
+        #header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background-color: rgba(37, 57, 73, 0.15);
+            backdrop-filter: blur(3.8vh);
+            border-bottom: 0.15vh solid white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2vw;
+            z-index: 1000;
+        }
+
+        .header-left,
+        .header-right {
+            flex: 1;
+        }
+
+        .header-center {
+            flex: 2;
+            text-align: center;
+        }
+
+        .header-center h1 {
+            margin: 0;
+            font-size: 4vw;
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+            transition: font-size 100ms ease-in-out;
+        }
+
+        .header-center h1:hover {
+            font-size: 4.1vw;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 1vh 2vw;
+            background: none;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            border: 0.15vh solid white;
+            font-size: 1.7vw;
+            font-weight: normal;
+            transition: transform 100ms ease-in-out;
+        }
+
+        .back-button:hover {
+            transform: scale(1.01);
+        }
+        
+        /* Controls-Panel - Glasmorphismus-Stil */
         #controls {
             position: absolute;
-            top: 20px;
+            top: 100px;
             left: 20px;
-            background: rgba(255, 255, 255, 0.95);
+            width: 25.7vw;
+            min-height: 250px;
+            border-radius: 3.8vh;
+            border: 0.15vh solid white;
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(3.8vh);
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            max-width: 320px;
-            z-index: 100;
-            max-height: 90vh;
+            max-height: calc(100vh - 120px);
             overflow-y: auto;
+            z-index: 100;
+            transition: transform 100ms ease-in-out;
         }
 
+        #controls:hover {
+            transform: scale(1.01);
+        }
+        
         #controls h2 {
             margin-bottom: 15px;
-            color: #333;
-            font-size: 20px;
-            font-weight: 600;
+            color: white;
+            font-size: 2.6vw;
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
         }
-
+        
         .control-group {
             margin-bottom: 15px;
         }
-
+        
         .control-group label {
             display: block;
             margin-bottom: 5px;
-            color: #666;
-            font-size: 14px;
-            font-weight: 500;
+            color: white;
+            font-size: 1.45vw;
+            font-weight: normal;
         }
-
-        .control-group select,
-        .control-group input {
+        
+        /* ESP-Selector-Stil übernommen */
+        .control-group select {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .control-group select:focus,
-        .control-group input:focus {
+            padding: 1vh;
+            color: grey;
+            background-color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.5vw;
+            font-family: Arial, Helvetica, sans-serif;
+            cursor: pointer;
             outline: none;
-            border-color: #667eea;
         }
 
+        .control-group select:hover {
+            background-color: #f0f0f0;
+        }
+        
         button {
             width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 1.5vh;
+            background-color: white;
+            color: grey;
             border: none;
-            border-radius: 6px;
+            border-radius: 25px;
             cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 1.7vw;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: normal;
+            transition: background-color 200ms ease-in-out;
         }
-
+        
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background-color: #f0f0f0;
+        }
+        
+        /* Stats-Box - gleicher Stil wie Controls */
+        #stats {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            width: 25.7vw;
+            border-radius: 3.8vh;
+            border: 0.15vh solid white;
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(3.8vh);
+            padding: 20px;
+            z-index: 100;
+            transition: transform 100ms ease-in-out;
         }
 
-        button:active {
-            transform: translateY(0);
+        #stats:hover {
+            transform: scale(1.01);
+        }
+        
+        #stats h3 {
+            margin-bottom: 15px;
+            color: white;
+            font-size: 2vw;
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 0.15vh solid rgba(255, 255, 255, 0.3);
+            font-size: 1.45vw;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: white;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: white;
         }
 
+        .info-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 0.15vh solid rgba(255, 255, 255, 0.3);
+        }
+
+        .info-section small {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2vw;
+            display: block;
+            text-align: center;
+        }
+
+        /* Info-Box unten */
         #info {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            background: rgba(255, 255, 255, 0.95);
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(3.8vh);
+            border: 0.15vh solid white;
+            border-radius: 3.8vh;
             padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            font-size: 13px;
-            color: #666;
+            font-size: 1.4vw;
+            color: white;
             z-index: 100;
         }
-
+        
+        /* Loading Screen */
         #loading {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.98);
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(3.8vh);
+            border: 0.15vh solid white;
+            border-radius: 3.8vh;
             padding: 40px 60px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
             text-align: center;
             z-index: 200;
         }
-
+        
         #loading h3 {
-            font-size: 20px;
-            color: #667eea;
+            font-size: 2.6vw;
+            color: white;
             margin-bottom: 15px;
+            font-family: Arial, Helvetica, sans-serif;
         }
-
+        
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
-
+        
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-
+        
         .hidden {
             display: none;
         }
 
-        #stats {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            max-width: 320px;
-            z-index: 100;
-        }
+        /* Mobile Layout */
+        @media screen and (max-width: 768px) {
+            .header-center h1 {
+                font-size: 5vh;
+            }
 
-        #stats h3 {
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 18px;
-            font-weight: 600;
-        }
+            .back-button {
+                font-size: 2vh;
+                padding: 1vh 2vh;
+            }
 
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
+            #controls, #stats {
+                width: 90%;
+                min-width: auto;
+            }
 
-        .stat-item:last-child {
-            border-bottom: none;
-        }
+            #controls {
+                left: 5%;
+                right: 5%;
+                top: 90px;
+            }
 
-        .stat-label {
-            color: #666;
-        }
+            #stats {
+                right: 5%;
+                top: auto;
+                bottom: 100px;
+            }
 
-        .stat-value {
-            font-weight: bold;
-            color: #667eea;
-        }
+            #controls h2, #stats h3 {
+                font-size: 3vh;
+            }
 
-        .info-section {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
+            .control-group label,
+            .stat-item {
+                font-size: 2vh;
+            }
 
-        .info-section small {
-            color: #999;
-            font-size: 11px;
+            .control-group select,
+            button {
+                font-size: 2.2vh;
+            }
+
+            #info {
+                font-size: 1.8vh;
+                left: 5%;
+                right: 5%;
+                text-align: center;
+            }
+
+            #loading h3 {
+                font-size: 3vh;
+            }
+
+            .info-section small {
+                font-size: 1.6vh;
+            }
         }
     </style>
 </head>
-
 <body>
+    <!-- Header -->
+    <div id="header">
+        <div class="header-left">
+            <a href="/" class="back-button">
+                ← Zurück
+            </a>
+        </div>
+        <div class="header-center">
+            <h1>🌦️ Wetterstation 3D</h1>
+        </div>
+        <div class="header-right">
+        </div>
+    </div>
+
     <div id="container">
         <div id="loading">
             <h3>Lade Wetterdaten...</h3>
             <div class="spinner"></div>
         </div>
-
+        
         <div id="controls" class="hidden">
             <h2>🎛️ Steuerung</h2>
-
+            
             <div class="control-group">
                 <label for="senderSelect">Sender auswählen:</label>
                 <select id="senderSelect">
                     <option value="all">Alle Sender</option>
                 </select>
             </div>
-
+            
             <div class="control-group">
                 <label for="timeRange">Zeitraum (Stunden):</label>
                 <select id="timeRange">
@@ -237,7 +383,7 @@
                     <option value="168">7 Tage</option>
                 </select>
             </div>
-
+            
             <div class="control-group">
                 <label for="visualizationType">Visualisierungstyp:</label>
                 <select id="visualizationType">
@@ -246,7 +392,7 @@
                     <option value="lines">Linien</option>
                 </select>
             </div>
-
+            
             <div class="control-group">
                 <label for="dataType">Messwert:</label>
                 <select id="dataType">
@@ -255,14 +401,14 @@
                     <option value="pressure">Luftdruck (hPa)</option>
                 </select>
             </div>
-
+            
             <button onclick="loadData()">🔄 Daten neu laden</button>
 
             <div class="info-section">
                 <small>💡 Die Z-Achse zeigt die echte zeitliche Entwicklung</small>
             </div>
         </div>
-
+        
         <div id="stats" class="hidden">
             <h3>📊 Statistik</h3>
             <div class="stat-item">
@@ -286,9 +432,9 @@
                 <span class="stat-value" id="maxInterval">-</span>
             </div>
         </div>
-
+        
         <div id="canvas-container"></div>
-
+        
         <div id="info" class="hidden">
             🖱️ Maus ziehen: Rotieren | 🔍 Mausrad: Zoom<br>
             📊 Z-Achse = Zeit (echte Zeitabstände)
@@ -303,16 +449,16 @@
         let allSendersData = null;
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
-
+        
         // Initialize Three.js scene
         function initScene() {
             const container = document.getElementById('canvas-container');
-
-            // Scene
+            
+            // Scene - Hintergrund angepasst an Website
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1a1a2e);
-            scene.fog = new THREE.Fog(0x1a1a2e, 50, 300);
-
+            scene.background = new THREE.Color(0x253949);
+            scene.fog = new THREE.Fog(0x253949, 50, 300);
+            
             // Camera
             camera = new THREE.PerspectiveCamera(
                 75,
@@ -322,148 +468,149 @@
             );
             camera.position.set(50, 50, 50);
             camera.lookAt(0, 0, 0);
-
+            
             // Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
-
-            // Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            
+            // Lights - angepasst an Website-Stil
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
             directionalLight.position.set(50, 50, 50);
             directionalLight.castShadow = true;
             scene.add(directionalLight);
-
-            const pointLight = new THREE.PointLight(0x667eea, 1.2, 150);
+            
+            const pointLight = new THREE.PointLight(0xffffff, 1, 150);
             pointLight.position.set(0, 30, 0);
             scene.add(pointLight);
-
-            // Grid helper
-            const gridHelper = new THREE.GridHelper(150, 75, 0x667eea, 0x444444);
+            
+            // Grid helper - weiße Linien
+            const gridHelper = new THREE.GridHelper(150, 75, 0xffffff, 0x666666);
             scene.add(gridHelper);
-
+            
             // Axes helper
             const axesHelper = new THREE.AxesHelper(40);
             scene.add(axesHelper);
-
+            
             // Mouse controls
             setupControls();
-
+            
             // Handle window resize
             window.addEventListener('resize', onWindowResize);
-
+            
             // Start animation loop
             animate();
         }
+        
         function setupControls() {
             renderer.domElement.addEventListener('mousedown', (e) => {
                 isDragging = true;
                 previousMousePosition = { x: e.clientX, y: e.clientY };
             });
-
+            
             renderer.domElement.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
-
+                
                 const deltaX = e.clientX - previousMousePosition.x;
                 const deltaY = e.clientY - previousMousePosition.y;
-
+                
                 const rotationSpeed = 0.005;
-
+                
                 // Rotate camera around origin
                 const radius = Math.sqrt(
-                    camera.position.x ** 2 +
-                    camera.position.y ** 2 +
+                    camera.position.x ** 2 + 
+                    camera.position.y ** 2 + 
                     camera.position.z ** 2
                 );
-
+                
                 const theta = Math.atan2(camera.position.z, camera.position.x);
                 const phi = Math.acos(camera.position.y / radius);
-
-                const newTheta = theta + deltaX * rotationSpeed;  // ← HIER: - zu + geändert
+                
+                const newTheta = theta + deltaX * rotationSpeed; // Invertiert
                 const newPhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi - deltaY * rotationSpeed));
-
+                
                 camera.position.x = radius * Math.sin(newPhi) * Math.cos(newTheta);
                 camera.position.y = radius * Math.cos(newPhi);
                 camera.position.z = radius * Math.sin(newPhi) * Math.sin(newTheta);
-
+                
                 camera.lookAt(0, 0, 0);
-
+                
                 previousMousePosition = { x: e.clientX, y: e.clientY };
             });
-
+            
             renderer.domElement.addEventListener('mouseup', () => {
                 isDragging = false;
             });
-
+            
             renderer.domElement.addEventListener('mouseleave', () => {
                 isDragging = false;
             });
-
+            
             renderer.domElement.addEventListener('wheel', (e) => {
                 e.preventDefault();
                 const zoomSpeed = 0.1;
                 const direction = e.deltaY > 0 ? 1.1 : 0.9;
-
+                
                 camera.position.multiplyScalar(direction);
             });
         }
-
+        
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
-
+        
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
         }
-
+        
         async function loadData() {
             const hours = document.getElementById('timeRange').value;
             document.getElementById('loading').classList.remove('hidden');
-
+            
             try {
                 const response = await fetch(`/api/weather/visualization/data?hours=${hours}`);
-
+                
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-
+                
                 const data = await response.json();
-
+                
                 allSendersData = data;
                 populateSenderSelect(data.senders);
-
+                
                 const selectedSender = document.getElementById('senderSelect').value;
                 currentData = filterDataBySender(data, selectedSender);
-
+                
                 updateStats(currentData);
                 visualizeData(currentData);
-
+                
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('controls').classList.remove('hidden');
                 document.getElementById('stats').classList.remove('hidden');
                 document.getElementById('info').classList.remove('hidden');
-
+                
             } catch (error) {
                 console.error('Error loading data:', error);
-                alert('Fehler beim Laden der Daten:  ' + error.message);
+                alert('Fehler beim Laden der Daten: ' + error.message);
                 document.getElementById('loading').classList.add('hidden');
             }
         }
-
+        
         function populateSenderSelect(senders) {
             const select = document.getElementById('senderSelect');
             const currentValue = select.value;
-
+            
             // Clear existing options except "Alle Sender"
             select.innerHTML = '<option value="all">Alle Sender</option>';
-
+            
             // Add sender options
             senders.forEach(sender => {
                 const option = document.createElement('option');
@@ -471,20 +618,20 @@
                 option.textContent = `${sender.sender.name} (${sender.sender.sender_id})`;
                 select.appendChild(option);
             });
-
+            
             // Restore previous selection if it exists
             if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
                 select.value = currentValue;
             }
         }
-
+        
         function filterDataBySender(data, senderId) {
             if (senderId === 'all') {
                 return data;
             }
-
+            
             const filteredSenders = data.senders.filter(s => s.sender.sender_id === senderId);
-
+            
             return {
                 senders: filteredSenders,
                 hours: data.hours,
@@ -492,16 +639,16 @@
                 totalDataPoints: filteredSenders.reduce((sum, s) => sum + s.dataPoints.length, 0)
             };
         }
-
+        
         function updateStats(data) {
             document.getElementById('senderCount').textContent = data.totalSenders;
             document.getElementById('dataPointCount').textContent = data.totalDataPoints;
             document.getElementById('timeRangeDisplay').textContent = data.hours + 'h';
-
+            
             // Calculate min/max time intervals
             let minInterval = Infinity;
             let maxInterval = 0;
-
+            
             data.senders.forEach(sender => {
                 const points = sender.dataPoints;
                 for (let i = 1; i < points.length; i++) {
@@ -510,19 +657,19 @@
                     maxInterval = Math.max(maxInterval, interval);
                 }
             });
-
+            
             if (minInterval === Infinity) minInterval = 0;
-
+            
             document.getElementById('minInterval').textContent = formatInterval(minInterval);
             document.getElementById('maxInterval').textContent = formatInterval(maxInterval);
         }
-
+        
         function formatInterval(seconds) {
             if (seconds < 60) return `${seconds}s`;
             if (seconds < 3600) return `${Math.round(seconds / 60)}min`;
             return `${Math.round(seconds / 3600)}h`;
         }
-
+        
         function visualizeData(data) {
             // Clear previous visualization (except lights and helpers)
             const objectsToRemove = [];
@@ -531,51 +678,51 @@
                     objectsToRemove.push(child);
                 }
             });
-
+            
             objectsToRemove.forEach(obj => {
                 if (obj.geometry) obj.geometry.dispose();
                 if (obj.material) obj.material.dispose();
                 scene.remove(obj);
             });
-
+            
             // Get visualization settings
             const vizType = document.getElementById('visualizationType').value;
             const dataType = document.getElementById('dataType').value;
-
+            
             // Create visualization
             const senders = data.senders;
             const senderSpacing = 25;
-
+            
             senders.forEach((sender, senderIndex) => {
                 const dataPoints = sender.dataPoints;
                 if (dataPoints.length === 0) return;
-
-                // ✅ VERBESSERTE ZENTRIERUNG
+                
+                // Zentrierte Positionierung
                 const xOffset = (senderIndex - (senders.length - 1) / 2) * senderSpacing;
-
+                
                 // Add sender label
                 createTextLabel(sender.sender.name, xOffset, -5, 0);
-
+                
                 // Find time range for this sender
                 const timestamps = dataPoints.map(p => p.unix_timestamp || p.unix);
                 const minTime = Math.min(...timestamps);
                 const maxTime = Math.max(...timestamps);
                 const timeRange = maxTime - minTime;
-
-                // Time scale:  map to Z axis (e.g., -30 to +30)
+                
+                // Time scale: map to Z axis (e.g., -30 to +30)
                 const zRange = 60;
                 const timeScale = timeRange > 0 ? zRange / timeRange : 1;
-
-                console.log(`Sender ${sender.sender.name}:  ${dataPoints.length} points, time range: ${formatInterval(timeRange)}`);
-
+                
+                console.log(`Sender ${sender.sender.name}: ${dataPoints.length} points, time range: ${formatInterval(timeRange)}`);
+                
                 // Visualize all data points with correct time spacing
                 dataPoints.forEach((point, pointIndex) => {
                     const value = point[dataType] || 0;
                     const timestamp = point.unix_timestamp || point.unix;
-
+                    
                     // Calculate Z position based on actual timestamp
                     const zPosition = ((timestamp - minTime) * timeScale) - (zRange / 2);
-
+                    
                     if (vizType === 'bars') {
                         createBar(value, dataType, xOffset, zPosition);
                     } else if (vizType === 'spheres') {
@@ -588,45 +735,45 @@
                         createLine(prevValue, value, dataType, xOffset, prevZ, zPosition);
                     }
                 });
-
+                
                 // Add time markers
                 addTimeMarkers(xOffset, minTime, maxTime, zRange);
             });
         }
-
+        
         function addTimeMarkers(x, minTime, maxTime, zRange) {
             const markerCount = 5;
             const timeStep = (maxTime - minTime) / (markerCount - 1);
-
+            
             for (let i = 0; i < markerCount; i++) {
                 const timestamp = minTime + (timeStep * i);
                 const z = (i / (markerCount - 1)) * zRange - (zRange / 2);
-
+                
                 const date = new Date(timestamp * 1000);
-                const timeStr = date.toLocaleTimeString('de-DE', {
-                    hour: '2-digit',
-                    minute: '2-digit'
+                const timeStr = date.toLocaleTimeString('de-DE', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
                 });
-
-                createSmallLabel(timeStr, x + 3, 0, z, 0.5);
+                
+                createSmallLabel(timeStr, x + 3, 0, z, 1);
             }
         }
-
+        
         function createTextLabel(text, x, y, z) {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             canvas.width = 512;
             canvas.height = 128;
-
+            
             context.fillStyle = 'rgba(255, 255, 255, 0.95)';
             context.fillRect(0, 0, canvas.width, canvas.height);
-
+            
             context.font = 'Bold 48px Arial';
-            context.fillStyle = '#333';
+            context.fillStyle = '#253949';
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             context.fillText(text, canvas.width / 2, canvas.height / 2);
-
+            
             const texture = new THREE.CanvasTexture(canvas);
             const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
             const sprite = new THREE.Sprite(spriteMaterial);
@@ -634,18 +781,18 @@
             sprite.scale.set(12, 3, 1);
             scene.add(sprite);
         }
-
+        
         function createSmallLabel(text, x, y, z, scale = 1) {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            canvas.width = 256;
-            canvas.height = 64;
+            canvas.width = 512;
+            canvas.height = 128;
 
-            context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            context.fillStyle = 'rgba(255, 255, 255, 0.9)';
             context.fillRect(0, 0, canvas.width, canvas.height);
 
-            context.font = 'Bold 28px Arial';
-            context.fillStyle = '#666';
+            context.font = 'Bold 56px Arial';
+            context.fillStyle = '#253949';
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             context.fillText(text, canvas.width / 2, canvas.height / 2);
@@ -654,10 +801,10 @@
             const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
             const sprite = new THREE.Sprite(spriteMaterial);
             sprite.position.set(x, y, z);
-            sprite.scale.set(4 * scale, 1 * scale, 1);
+            sprite.scale.set(8 * scale, 2 * scale, 1);
             scene.add(sprite);
         }
-
+        
         function createBar(value, dataType, x, z) {
             const height = getScaledHeight(value, dataType);
             const geometry = new THREE.BoxGeometry(1.5, height, 0.3);
@@ -673,7 +820,7 @@
             mesh.receiveShadow = true;
             scene.add(mesh);
         }
-
+        
         function createSphere(value, dataType, x, z) {
             const radius = getScaledRadius(value, dataType);
             const height = getScaledHeight(value, dataType);
@@ -690,15 +837,15 @@
             mesh.receiveShadow = true;
             scene.add(mesh);
         }
-
+        
         function createLine(prevValue, value, dataType, x, prevZ, z) {
             const prevHeight = getScaledHeight(prevValue, dataType);
             const height = getScaledHeight(value, dataType);
-
+            
             const points = [];
             points.push(new THREE.Vector3(x, prevHeight * 0.5, prevZ));
             points.push(new THREE.Vector3(x, height * 0.5, z));
-
+            
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             const material = new THREE.LineBasicMaterial({
                 color: getColorForValue(value, dataType),
@@ -707,7 +854,7 @@
             const line = new THREE.Line(geometry, material);
             scene.add(line);
         }
-
+        
         function getScaledHeight(value, dataType) {
             if (dataType === 'temperature') {
                 return Math.max(value * 0.8, 0.5);
@@ -718,7 +865,7 @@
             }
             return 0.5;
         }
-
+        
         function getScaledRadius(value, dataType) {
             if (dataType === 'temperature') {
                 return Math.max(value * 0.08, 0.3);
@@ -729,24 +876,24 @@
             }
             return 0.3;
         }
-
+        
         function getColorForValue(value, dataType) {
             if (dataType === 'temperature') {
                 // Blue (cold) to Red (hot): -10°C to 40°C
                 const normalized = Math.max(0, Math.min(1, (value + 10) / 50));
-                return new THREE.Color(normalized, 0.2, 1 - normalized);
+                return new THREE.Color(normalized, 0.3, 1 - normalized);
             } else if (dataType === 'humidity') {
                 // Light to dark blue: 0% to 100%
                 const normalized = Math.max(0, Math.min(1, value / 100));
-                return new THREE.Color(0.3, 0.5 + normalized * 0.5, 1);
+                return new THREE.Color(0.4, 0.6 + normalized * 0.4, 1);
             } else if (dataType === 'pressure') {
-                // Green gradient:  950 to 1050 hPa
+                // Green-yellow gradient: 950 to 1050 hPa
                 const normalized = Math.max(0, Math.min(1, (value - 950) / 100));
-                return new THREE.Color(normalized * 0.5, 1 - normalized * 0.3, 0.3);
+                return new THREE.Color(normalized * 0.6 + 0.4, 1, 0.4);
             }
-            return new THREE.Color(0.5, 0.5, 0.5);
+            return new THREE.Color(1, 1, 1);
         }
-
+        
         // Event listeners
         document.getElementById('senderSelect').addEventListener('change', () => {
             if (allSendersData) {
@@ -756,21 +903,20 @@
                 visualizeData(currentData);
             }
         });
-
+        
         document.getElementById('timeRange').addEventListener('change', loadData);
-
+        
         document.getElementById('visualizationType').addEventListener('change', () => {
             if (currentData) visualizeData(currentData);
         });
-
+        
         document.getElementById('dataType').addEventListener('change', () => {
             if (currentData) visualizeData(currentData);
         });
-
+        
         // Initialize
         initScene();
         loadData();
     </script>
 </body>
-
 </html>
