@@ -587,7 +587,8 @@
             
             // Debounced resize handler für bessere Performance
             window.addEventListener('resize', debounce(onWindowResize, 250));
-            renderer.domElement.addEventListener('mousemove', debounce(onMouseMoveHover, 16)); // ~60fps
+            // Verwende native mousemove ohne debounce für flüssigere Interaktion
+            renderer.domElement.addEventListener('mousemove', onMouseMoveHover);
             
             animate();
         }
@@ -1179,8 +1180,14 @@
         });
         
         // Focus management für bessere Accessibility
+        const controlsElement = document.getElementById('controls');
+        
         document.getElementById('senderSelect').addEventListener('focus', () => {
-            document.getElementById('controls').setAttribute('aria-expanded', 'true');
+            controlsElement.setAttribute('aria-expanded', 'true');
+        });
+        
+        document.getElementById('senderSelect').addEventListener('blur', () => {
+            controlsElement.setAttribute('aria-expanded', 'false');
         });
         
         initScene();

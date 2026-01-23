@@ -20,6 +20,28 @@ const {
 } = require('../database/queries');
 
 // ============================================================================
+// Configuration Constants
+// ============================================================================
+
+/**
+ * Gültige Alert-Typen
+ */
+const VALID_ALERT_TYPES = ['temperature', 'humidity', 'pressure'];
+
+/**
+ * Gültige Alert-Bedingungen
+ */
+const VALID_CONDITIONS = ['>', '<', '>=', '<=', '==', '!='];
+
+/**
+ * Maximale Zeiträume für Datenabfragen (in Stunden)
+ */
+const MAX_HOURS = {
+  STANDARD: 720,      // 30 Tage für normale Abfragen
+  VISUALIZATION: 168  // 7 Tage für Visualisierung (Performance)
+};
+
+// ============================================================================
 // POST Routes - Data Ingestion
 // ============================================================================
 
@@ -191,8 +213,8 @@ router.get('/:senderId', async (req, res, next) => {
   // Validate hours parameter
   if (isNaN(hours) || hours < 1) {
     hours = 5;
-  } else if (hours > 720) {
-    hours = 720; // Cap at 30 days
+  } else if (hours > MAX_HOURS.STANDARD) {
+    hours = MAX_HOURS.STANDARD;
   }
 
   try {
@@ -229,8 +251,8 @@ router.get('/:senderId/range', async (req, res, next) => {
   // Validate hours parameter
   if (isNaN(hours) || hours < 1) {
     hours = 24;
-  } else if (hours > 720) {
-    hours = 720; // Cap at 30 days
+  } else if (hours > MAX_HOURS.STANDARD) {
+    hours = MAX_HOURS.STANDARD;
   }
 
   try {
@@ -267,8 +289,8 @@ router.get('/:senderId/averages', async (req, res, next) => {
   // Validate hours parameter
   if (isNaN(hours) || hours < 1) {
     hours = 24;
-  } else if (hours > 720) {
-    hours = 720; // Cap at 30 days
+  } else if (hours > MAX_HOURS.STANDARD) {
+    hours = MAX_HOURS.STANDARD;
   }
 
   try {
@@ -446,20 +468,18 @@ router.post('/alerts', async (req, res, next) => {
   }
 
   // Validate alert_type
-  const validAlertTypes = ['temperature', 'humidity', 'pressure'];
-  if (!validAlertTypes.includes(alert_type)) {
+  if (!VALID_ALERT_TYPES.includes(alert_type)) {
     return res.status(400).json({
       status: 'error',
-      error: `Invalid alert_type. Must be one of: ${validAlertTypes.join(', ')}`
+      error: `Invalid alert_type. Must be one of: ${VALID_ALERT_TYPES.join(', ')}`
     });
   }
 
   // Validate condition
-  const validConditions = ['>', '<', '>=', '<=', '==', '!='];
-  if (!validConditions.includes(condition)) {
+  if (!VALID_CONDITIONS.includes(condition)) {
     return res.status(400).json({
       status: 'error',
-      error: `Invalid condition. Must be one of: ${validConditions.join(', ')}`
+      error: `Invalid condition. Must be one of: ${VALID_CONDITIONS.join(', ')}`
     });
   }
 
@@ -524,8 +544,8 @@ router.get('/visualization/data', async (req, res, next) => {
   // Validate hours parameter (limit for visualization performance)
   if (isNaN(hours) || hours < 1) {
     hours = 24;
-  } else if (hours > 168) {
-    hours = 168; // Cap at 7 days for better visualization performance
+  } else if (hours > MAX_HOURS.VISUALIZATION) {
+    hours = MAX_HOURS.VISUALIZATION;
   }
   
   try {
