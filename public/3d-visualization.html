@@ -530,7 +530,7 @@
         // Geometry cache for reuse
         const geometryCache = {
             box: new THREE.BoxGeometry(1.5, 1, 0.3),
-            spheres: {} // Cache für verschiedene Radien
+            spheres: {} // Cache for different radii
         };
         
         /**
@@ -606,7 +606,7 @@
                 previousMousePosition = { x: e.clientX, y: e.clientY };
             });
             
-            // KOMBINIERTER mousemove Handler - both dragging and hover
+            // COMBINED mousemove Handler - both dragging and hover
             renderer.domElement.addEventListener('mousemove', (e) => {
                 if (isDragging) {
                     // Rotation logic
@@ -1059,11 +1059,11 @@
         function createSphere(value, dataType, x, z, metadata) {
             const radius = getScaledRadius(value, dataType);
             const height = getScaledHeight(value, dataType);
-            const cacheKey = Math.round(radius * 10); // Auf 0.1 runden
+            const cacheKey = Math.round(radius * 10); // Round to 0.1
             
-            // Geometry aus Cache oder neu erstellen
+            // Get geometry from cache or create new
             if (!geometryCache.spheres[cacheKey]) {
-                geometryCache.spheres[cacheKey] = new THREE.SphereGeometry(radius, 8, 8);
+                geometryCache.spheres[cacheKey] = new THREE.SphereGeometry(cacheKey / 10, 8, 8);
             }
             
             const geometry = geometryCache.spheres[cacheKey];
