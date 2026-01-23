@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: Arial, Helvetica, sans-serif;
             background-color: #253949;
@@ -24,7 +23,7 @@
             height: 100vh;
             position: relative;
         }
-
+        
         #canvas-container {
             width: 100%;
             height: 100%;
@@ -87,14 +86,13 @@
         .back-button:hover {
             transform: scale(1.01);
         }
-
-        /* Controls-Panel - KOMPAKTER */
+        
+        /* Controls-Panel - KOMPAKT */
         #controls {
             position: absolute;
             top: 100px;
             left: 20px;
             width: 20vw;
-            /* ← Reduziert von 25.7vw */
             min-width: 250px;
             min-height: 200px;
             border-radius: 3.8vh;
@@ -102,7 +100,6 @@
             background-color: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(3.8vh);
             padding: 15px;
-            /* ← Reduziert von 20px */
             max-height: calc(100vh - 120px);
             overflow-y: auto;
             z-index: 100;
@@ -112,43 +109,36 @@
         #controls:hover {
             transform: scale(1.01);
         }
-
+        
         #controls h2 {
             margin-bottom: 12px;
-            /* ← Reduziert */
             color: white;
             font-size: 2.2vw;
-            /* ← Reduziert von 2.6vw */
             font-family: Arial, Helvetica, sans-serif;
             text-align: center;
         }
-
+        
         .control-group {
             margin-bottom: 12px;
-            /* ← Reduziert von 15px */
         }
-
+        
         .control-group label {
             display: block;
             margin-bottom: 4px;
-            /* ← Reduziert */
             color: white;
             font-size: 1.2vw;
-            /* ← Reduziert von 1.45vw */
             font-weight: normal;
         }
-
+        
         /* ESP-Selector-Stil übernommen */
         .control-group select {
             width: 100%;
             padding: 0.8vh;
-            /* ← Reduziert */
             color: grey;
             background-color: white;
             border: none;
             border-radius: 25px;
             font-size: 1.3vw;
-            /* ← Reduziert von 1.5vw */
             font-family: Arial, Helvetica, sans-serif;
             cursor: pointer;
             outline: none;
@@ -157,41 +147,37 @@
         .control-group select:hover {
             background-color: #f0f0f0;
         }
-
+        
         button {
             width: 100%;
             padding: 1.2vh;
-            /* ← Reduziert */
             background-color: white;
             color: grey;
             border: none;
             border-radius: 25px;
             cursor: pointer;
             font-size: 1.4vw;
-            /* ← Reduziert von 1.7vw */
             font-family: Arial, Helvetica, sans-serif;
             font-weight: normal;
             transition: background-color 200ms ease-in-out;
         }
-
+        
         button:hover {
             background-color: #f0f0f0;
         }
-
-        /* Stats-Box - auch kompakter für Konsistenz */
+        
+        /* Stats-Box - auch kompakter */
         #stats {
             position: absolute;
             top: 100px;
             right: 20px;
             width: 20vw;
-            /* ← Reduziert von 25.7vw */
             min-width: 250px;
             border-radius: 3.8vh;
             border: 0.15vh solid white;
             background-color: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(3.8vh);
             padding: 15px;
-            /* ← Reduziert */
             z-index: 100;
             transition: transform 100ms ease-in-out;
         }
@@ -199,35 +185,31 @@
         #stats:hover {
             transform: scale(1.01);
         }
-
+        
         #stats h3 {
             margin-bottom: 12px;
-            /* ← Reduziert */
             color: white;
             font-size: 1.8vw;
-            /* ← Reduziert von 2vw */
             font-family: Arial, Helvetica, sans-serif;
             text-align: center;
         }
-
+        
         .stat-item {
             display: flex;
             justify-content: space-between;
             padding: 6px 0;
-            /* ← Reduziert */
             border-bottom: 0.15vh solid rgba(255, 255, 255, 0.3);
             font-size: 1.2vw;
-            /* ← Reduziert von 1.45vw */
         }
-
+        
         .stat-item:last-child {
             border-bottom: none;
         }
-
+        
         .stat-label {
             color: white;
         }
-
+        
         .stat-value {
             font-weight: bold;
             color: white;
@@ -235,16 +217,13 @@
 
         .info-section {
             margin-top: 12px;
-            /* ← Reduziert */
             padding-top: 12px;
-            /* ← Reduziert */
             border-top: 0.15vh solid rgba(255, 255, 255, 0.3);
         }
 
         .info-section small {
             color: rgba(255, 255, 255, 0.8);
             font-size: 1vw;
-            /* ← Reduziert von 1.2vw */
             display: block;
             text-align: center;
         }
@@ -263,7 +242,33 @@
             color: white;
             z-index: 100;
         }
+        
+        /* Tooltip */
+        #tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(3.8vh);
+            border: 0.15vh solid white;
+            border-radius: 2vh;
+            padding: 10px 15px;
+            font-size: 1.3vw;
+            color: #253949;
+            z-index: 150;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
 
+        #tooltip strong {
+            color: #253949;
+            font-size: 1.4vw;
+        }
+
+        #tooltip span {
+            color: #253949;
+            font-size: 1.2vw;
+        }
+        
         /* Loading Screen */
         #loading {
             position: absolute;
@@ -278,14 +283,14 @@
             text-align: center;
             z-index: 200;
         }
-
+        
         #loading h3 {
             font-size: 2.6vw;
             color: white;
             margin-bottom: 15px;
             font-family: Arial, Helvetica, sans-serif;
         }
-
+        
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.3);
             border-top: 4px solid white;
@@ -295,17 +300,12 @@
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
-
+        
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-
+        
         .hidden {
             display: none;
         }
@@ -321,8 +321,7 @@
                 padding: 1vh 2vh;
             }
 
-            #controls,
-            #stats {
+            #controls, #stats {
                 width: 90%;
                 min-width: auto;
             }
@@ -339,8 +338,7 @@
                 bottom: 100px;
             }
 
-            #controls h2,
-            #stats h3 {
+            #controls h2, #stats h3 {
                 font-size: 3vh;
             }
 
@@ -368,10 +366,21 @@
             .info-section small {
                 font-size: 1.6vh;
             }
+
+            #tooltip {
+                font-size: 2vh;
+            }
+
+            #tooltip strong {
+                font-size: 2.2vh;
+            }
+
+            #tooltip span {
+                font-size: 1.8vh;
+            }
         }
     </style>
 </head>
-
 <body>
     <!-- Header -->
     <div id="header">
@@ -392,17 +401,17 @@
             <h3>Lade Wetterdaten...</h3>
             <div class="spinner"></div>
         </div>
-
+        
         <div id="controls" class="hidden">
             <h2>🎛️ Steuerung</h2>
-
+            
             <div class="control-group">
                 <label for="senderSelect">Sender auswählen:</label>
                 <select id="senderSelect">
                     <option value="all">Alle Sender</option>
                 </select>
             </div>
-
+            
             <div class="control-group">
                 <label for="timeRange">Zeitraum (Stunden):</label>
                 <select id="timeRange">
@@ -414,7 +423,7 @@
                     <option value="168">7 Tage</option>
                 </select>
             </div>
-
+            
             <div class="control-group">
                 <label for="visualizationType">Visualisierungstyp:</label>
                 <select id="visualizationType">
@@ -423,7 +432,7 @@
                     <option value="lines">Linien</option>
                 </select>
             </div>
-
+            
             <div class="control-group">
                 <label for="dataType">Messwert:</label>
                 <select id="dataType">
@@ -432,14 +441,14 @@
                     <option value="pressure">Luftdruck (hPa)</option>
                 </select>
             </div>
-
+            
             <button onclick="loadData()">🔄 Daten neu laden</button>
 
             <div class="info-section">
                 <small>💡 Die Z-Achse zeigt die echte zeitliche Entwicklung</small>
             </div>
         </div>
-
+        
         <div id="stats" class="hidden">
             <h3>📊 Statistik</h3>
             <div class="stat-item">
@@ -463,12 +472,18 @@
                 <span class="stat-value" id="maxInterval">-</span>
             </div>
         </div>
-
+        
         <div id="canvas-container"></div>
-
+        
         <div id="info" class="hidden">
             🖱️ Maus ziehen: Rotieren | 🔍 Mausrad: Zoom<br>
             📊 Z-Achse = Zeit (echte Zeitabstände)
+        </div>
+
+        <div id="tooltip" class="hidden">
+            <strong id="tooltipSender"></strong><br>
+            <span id="tooltipValue"></span><br>
+            <span id="tooltipTime"></span>
         </div>
     </div>
 
@@ -480,17 +495,20 @@
         let allSendersData = null;
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
-
-        // Initialize Three.js scene
+        let raycaster, mouse;
+        let hoveredObject = null;
+        let interactiveObjects = [];
+        
         function initScene() {
             const container = document.getElementById('canvas-container');
-
-            // Scene - Hintergrund angepasst an Website
+            
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x253949);
             scene.fog = new THREE.Fog(0x253949, 50, 300);
-
-            // Camera
+            
             camera = new THREE.PerspectiveCamera(
                 75,
                 window.innerWidth / window.innerHeight,
@@ -499,170 +517,237 @@
             );
             camera.position.set(50, 50, 50);
             camera.lookAt(0, 0, 0);
-
-            // Renderer
+            
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
-
-            // Lights - angepasst an Website-Stil
+            
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
-
+            
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
             directionalLight.position.set(50, 50, 50);
             directionalLight.castShadow = true;
             scene.add(directionalLight);
-
+            
             const pointLight = new THREE.PointLight(0xffffff, 1, 150);
             pointLight.position.set(0, 30, 0);
             scene.add(pointLight);
-
-            // Grid helper - weiße Linien
+            
             const gridHelper = new THREE.GridHelper(150, 75, 0xffffff, 0x666666);
             scene.add(gridHelper);
-
-            // Axes helper
+            
             const axesHelper = new THREE.AxesHelper(40);
             scene.add(axesHelper);
-
-            // Mouse controls
+            
             setupControls();
-
-            // Handle window resize
+            
             window.addEventListener('resize', onWindowResize);
-
-            // Start animation loop
+            renderer.domElement.addEventListener('mousemove', onMouseMoveHover);
+            
             animate();
         }
-
+        
         function setupControls() {
             renderer.domElement.addEventListener('mousedown', (e) => {
                 isDragging = true;
                 previousMousePosition = { x: e.clientX, y: e.clientY };
             });
-
+            
             renderer.domElement.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
-
+                
                 const deltaX = e.clientX - previousMousePosition.x;
                 const deltaY = e.clientY - previousMousePosition.y;
-
+                
                 const rotationSpeed = 0.005;
-
-                // Rotate camera around origin
+                
                 const radius = Math.sqrt(
-                    camera.position.x ** 2 +
-                    camera.position.y ** 2 +
+                    camera.position.x ** 2 + 
+                    camera.position.y ** 2 + 
                     camera.position.z ** 2
                 );
-
+                
                 const theta = Math.atan2(camera.position.z, camera.position.x);
                 const phi = Math.acos(camera.position.y / radius);
-
-                const newTheta = theta + deltaX * rotationSpeed; // Invertiert
+                
+                const newTheta = theta + deltaX * rotationSpeed;
                 const newPhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi - deltaY * rotationSpeed));
-
+                
                 camera.position.x = radius * Math.sin(newPhi) * Math.cos(newTheta);
                 camera.position.y = radius * Math.cos(newPhi);
                 camera.position.z = radius * Math.sin(newPhi) * Math.sin(newTheta);
-
+                
                 camera.lookAt(0, 0, 0);
-
+                
                 previousMousePosition = { x: e.clientX, y: e.clientY };
             });
-
+            
             renderer.domElement.addEventListener('mouseup', () => {
                 isDragging = false;
             });
-
+            
             renderer.domElement.addEventListener('mouseleave', () => {
                 isDragging = false;
+                hideTooltip();
             });
-
+            
             renderer.domElement.addEventListener('wheel', (e) => {
                 e.preventDefault();
-                const zoomSpeed = 0.1;
                 const direction = e.deltaY > 0 ? 1.1 : 0.9;
-
                 camera.position.multiplyScalar(direction);
             });
         }
-
+        
+        function onMouseMoveHover(event) {
+            if (isDragging) {
+                hideTooltip();
+                return;
+            }
+            
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            const intersects = raycaster.intersectObjects(interactiveObjects);
+            
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+                
+                if (hoveredObject !== object) {
+                    if (hoveredObject && hoveredObject.userData.originalEmissive !== undefined) {
+                        hoveredObject.material.emissiveIntensity = hoveredObject.userData.originalEmissive;
+                    }
+                    
+                    hoveredObject = object;
+                    
+                    if (object.material.emissiveIntensity !== undefined) {
+                        object.userData.originalEmissive = object.material.emissiveIntensity;
+                        object.material.emissiveIntensity = 0.6;
+                    }
+                    
+                    showTooltip(event, object.userData);
+                }
+            } else {
+                if (hoveredObject) {
+                    if (hoveredObject.userData.originalEmissive !== undefined) {
+                        hoveredObject.material.emissiveIntensity = hoveredObject.userData.originalEmissive;
+                    }
+                    hoveredObject = null;
+                }
+                hideTooltip();
+            }
+        }
+        
+        function showTooltip(event, data) {
+            const tooltip = document.getElementById('tooltip');
+            const senderEl = document.getElementById('tooltipSender');
+            const valueEl = document.getElementById('tooltipValue');
+            const timeEl = document.getElementById('tooltipTime');
+            
+            senderEl.textContent = data.senderName || 'Unbekannt';
+            
+            let unit = '';
+            if (data.dataType === 'temperature') unit = '°C';
+            else if (data.dataType === 'humidity') unit = '%';
+            else if (data.dataType === 'pressure') unit = ' hPa';
+            
+            valueEl.textContent = `${data.dataType === 'temperature' ? 'Temperatur' : 
+                                    data.dataType === 'humidity' ? 'Luftfeuchtigkeit' : 
+                                    'Luftdruck'}: ${data.value.toFixed(2)}${unit}`;
+            
+            if (data.timestamp) {
+                const date = new Date(data.timestamp * 1000);
+                timeEl.textContent = date.toLocaleString('de-DE', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            
+            tooltip.style.left = (event.clientX + 15) + 'px';
+            tooltip.style.top = (event.clientY + 15) + 'px';
+            tooltip.classList.remove('hidden');
+        }
+        
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.add('hidden');
+        }
+        
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
-
+        
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
         }
-
+        
         async function loadData() {
             const hours = document.getElementById('timeRange').value;
             document.getElementById('loading').classList.remove('hidden');
-
+            
             try {
                 const response = await fetch(`/api/weather/visualization/data?hours=${hours}`);
-
+                
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-
+                
                 const data = await response.json();
-
+                
                 allSendersData = data;
                 populateSenderSelect(data.senders);
-
+                
                 const selectedSender = document.getElementById('senderSelect').value;
                 currentData = filterDataBySender(data, selectedSender);
-
+                
                 updateStats(currentData);
                 visualizeData(currentData);
-
+                
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('controls').classList.remove('hidden');
                 document.getElementById('stats').classList.remove('hidden');
                 document.getElementById('info').classList.remove('hidden');
-
+                
             } catch (error) {
                 console.error('Error loading data:', error);
                 alert('Fehler beim Laden der Daten: ' + error.message);
                 document.getElementById('loading').classList.add('hidden');
             }
         }
-
+        
         function populateSenderSelect(senders) {
             const select = document.getElementById('senderSelect');
             const currentValue = select.value;
-
-            // Clear existing options except "Alle Sender"
+            
             select.innerHTML = '<option value="all">Alle Sender</option>';
-
-            // Add sender options
+            
             senders.forEach(sender => {
                 const option = document.createElement('option');
                 option.value = sender.sender.sender_id;
                 option.textContent = `${sender.sender.name} (${sender.sender.sender_id})`;
                 select.appendChild(option);
             });
-
-            // Restore previous selection if it exists
+            
             if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
                 select.value = currentValue;
             }
         }
-
+        
         function filterDataBySender(data, senderId) {
             if (senderId === 'all') {
                 return data;
             }
-
+            
             const filteredSenders = data.senders.filter(s => s.sender.sender_id === senderId);
-
+            
             return {
                 senders: filteredSenders,
                 hours: data.hours,
@@ -670,16 +755,15 @@
                 totalDataPoints: filteredSenders.reduce((sum, s) => sum + s.dataPoints.length, 0)
             };
         }
-
+        
         function updateStats(data) {
             document.getElementById('senderCount').textContent = data.totalSenders;
             document.getElementById('dataPointCount').textContent = data.totalDataPoints;
             document.getElementById('timeRangeDisplay').textContent = data.hours + 'h';
-
-            // Calculate min/max time intervals
+            
             let minInterval = Infinity;
             let maxInterval = 0;
-
+            
             data.senders.forEach(sender => {
                 const points = sender.dataPoints;
                 for (let i = 1; i < points.length; i++) {
@@ -688,76 +772,88 @@
                     maxInterval = Math.max(maxInterval, interval);
                 }
             });
-
+            
             if (minInterval === Infinity) minInterval = 0;
-
+            
             document.getElementById('minInterval').textContent = formatInterval(minInterval);
             document.getElementById('maxInterval').textContent = formatInterval(maxInterval);
         }
-
+        
         function formatInterval(seconds) {
             if (seconds < 60) return `${seconds}s`;
             if (seconds < 3600) return `${Math.round(seconds / 60)}min`;
             return `${Math.round(seconds / 3600)}h`;
         }
-
+        
         function visualizeData(data) {
-            // Clear previous visualization (except lights and helpers)
+            interactiveObjects = [];
             const objectsToRemove = [];
             scene.children.forEach(child => {
                 if (child.type === 'Mesh' || child.type === 'Line' || child.type === 'Sprite') {
                     objectsToRemove.push(child);
                 }
             });
-
+            
             objectsToRemove.forEach(obj => {
                 if (obj.geometry) obj.geometry.dispose();
                 if (obj.material) obj.material.dispose();
                 scene.remove(obj);
             });
-
-            // Get visualization settings
+            
             const vizType = document.getElementById('visualizationType').value;
             const dataType = document.getElementById('dataType').value;
-
-            // Create visualization
+            
             const senders = data.senders;
             const senderSpacing = 25;
-
+            
+            let minValue = Infinity;
+            let maxValue = -Infinity;
+            
+            senders.forEach(sender => {
+                sender.dataPoints.forEach(point => {
+                    const value = point[dataType] || 0;
+                    minValue = Math.min(minValue, value);
+                    maxValue = Math.max(maxValue, value);
+                });
+            });
+            
+            if (senders.length > 0) {
+                const leftX = ((0 - (senders.length - 1) / 2) * senderSpacing) - 8;
+                addYAxisLabels(leftX, minValue, maxValue, dataType);
+            }
+            
             senders.forEach((sender, senderIndex) => {
                 const dataPoints = sender.dataPoints;
                 if (dataPoints.length === 0) return;
-
-                // Zentrierte Positionierung
+                
                 const xOffset = (senderIndex - (senders.length - 1) / 2) * senderSpacing;
-
-                // Add sender label
+                
                 createTextLabel(sender.sender.name, xOffset, -5, 0);
-
-                // Find time range for this sender
+                
                 const timestamps = dataPoints.map(p => p.unix_timestamp || p.unix);
                 const minTime = Math.min(...timestamps);
                 const maxTime = Math.max(...timestamps);
                 const timeRange = maxTime - minTime;
-
-                // Time scale: map to Z axis (e.g., -30 to +30)
+                
                 const zRange = 60;
                 const timeScale = timeRange > 0 ? zRange / timeRange : 1;
-
-                console.log(`Sender ${sender.sender.name}: ${dataPoints.length} points, time range: ${formatInterval(timeRange)}`);
-
-                // Visualize all data points with correct time spacing
+                
                 dataPoints.forEach((point, pointIndex) => {
                     const value = point[dataType] || 0;
                     const timestamp = point.unix_timestamp || point.unix;
-
-                    // Calculate Z position based on actual timestamp
                     const zPosition = ((timestamp - minTime) * timeScale) - (zRange / 2);
-
+                    
+                    const metadata = {
+                        senderName: sender.sender.name,
+                        value: value,
+                        dataType: dataType,
+                        timestamp: timestamp
+                    };
+                    
                     if (vizType === 'bars') {
-                        createBar(value, dataType, xOffset, zPosition);
+                        createBar(value, dataType, xOffset, zPosition, metadata);
                     } else if (vizType === 'spheres') {
-                        createSphere(value, dataType, xOffset, zPosition);
+                        createSphere(value, dataType, xOffset, zPosition, metadata);
                     } else if (vizType === 'lines' && pointIndex > 0) {
                         const prevPoint = dataPoints[pointIndex - 1];
                         const prevValue = prevPoint[dataType] || 0;
@@ -766,45 +862,64 @@
                         createLine(prevValue, value, dataType, xOffset, prevZ, zPosition);
                     }
                 });
-
-                // Add time markers
+                
                 addTimeMarkers(xOffset, minTime, maxTime, zRange);
             });
         }
-
+        
+        function addYAxisLabels(x, minValue, maxValue, dataType) {
+            const labelCount = 6;
+            const range = maxValue - minValue;
+            const step = range / (labelCount - 1);
+            
+            let unit = '';
+            if (dataType === 'temperature') unit = '°C';
+            else if (dataType === 'humidity') unit = '%';
+            else if (dataType === 'pressure') unit = 'hPa';
+            
+            for (let i = 0; i < labelCount; i++) {
+                const value = minValue + (step * i);
+                const height = getScaledHeight(value, dataType);
+                const y = height * 0.5;
+                
+                let displayValue = value.toFixed(dataType === 'pressure' ? 0 : 1);
+                createSmallLabel(`${displayValue}${unit}`, x, y, 0, 0.8);
+            }
+        }
+        
         function addTimeMarkers(x, minTime, maxTime, zRange) {
             const markerCount = 5;
             const timeStep = (maxTime - minTime) / (markerCount - 1);
-
+            
             for (let i = 0; i < markerCount; i++) {
                 const timestamp = minTime + (timeStep * i);
                 const z = (i / (markerCount - 1)) * zRange - (zRange / 2);
-
+                
                 const date = new Date(timestamp * 1000);
-                const timeStr = date.toLocaleTimeString('de-DE', {
-                    hour: '2-digit',
-                    minute: '2-digit'
+                const timeStr = date.toLocaleTimeString('de-DE', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
                 });
-
+                
                 createSmallLabel(timeStr, x + 3, 0, z, 1);
             }
         }
-
+        
         function createTextLabel(text, x, y, z) {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             canvas.width = 512;
             canvas.height = 128;
-
+            
             context.fillStyle = 'rgba(255, 255, 255, 0.95)';
             context.fillRect(0, 0, canvas.width, canvas.height);
-
+            
             context.font = 'Bold 48px Arial';
             context.fillStyle = '#253949';
             context.textAlign = 'center';
             context.textBaseline = 'middle';
             context.fillText(text, canvas.width / 2, canvas.height / 2);
-
+            
             const texture = new THREE.CanvasTexture(canvas);
             const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
             const sprite = new THREE.Sprite(spriteMaterial);
@@ -812,7 +927,7 @@
             sprite.scale.set(12, 3, 1);
             scene.add(sprite);
         }
-
+        
         function createSmallLabel(text, x, y, z, scale = 1) {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
@@ -835,8 +950,8 @@
             sprite.scale.set(8 * scale, 2 * scale, 1);
             scene.add(sprite);
         }
-
-        function createBar(value, dataType, x, z) {
+        
+        function createBar(value, dataType, x, z, metadata) {
             const height = getScaledHeight(value, dataType);
             const geometry = new THREE.BoxGeometry(1.5, height, 0.3);
             const material = new THREE.MeshPhongMaterial({
@@ -849,10 +964,12 @@
             mesh.position.set(x, height / 2, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
+            mesh.userData = metadata;
             scene.add(mesh);
+            interactiveObjects.push(mesh);
         }
-
-        function createSphere(value, dataType, x, z) {
+        
+        function createSphere(value, dataType, x, z, metadata) {
             const radius = getScaledRadius(value, dataType);
             const height = getScaledHeight(value, dataType);
             const geometry = new THREE.SphereGeometry(radius, 16, 16);
@@ -866,17 +983,19 @@
             mesh.position.set(x, height * 0.5, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
+            mesh.userData = metadata;
             scene.add(mesh);
+            interactiveObjects.push(mesh);
         }
-
+        
         function createLine(prevValue, value, dataType, x, prevZ, z) {
             const prevHeight = getScaledHeight(prevValue, dataType);
             const height = getScaledHeight(value, dataType);
-
+            
             const points = [];
             points.push(new THREE.Vector3(x, prevHeight * 0.5, prevZ));
             points.push(new THREE.Vector3(x, height * 0.5, z));
-
+            
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             const material = new THREE.LineBasicMaterial({
                 color: getColorForValue(value, dataType),
@@ -885,7 +1004,7 @@
             const line = new THREE.Line(geometry, material);
             scene.add(line);
         }
-
+        
         function getScaledHeight(value, dataType) {
             if (dataType === 'temperature') {
                 return Math.max(value * 0.8, 0.5);
@@ -896,7 +1015,7 @@
             }
             return 0.5;
         }
-
+        
         function getScaledRadius(value, dataType) {
             if (dataType === 'temperature') {
                 return Math.max(value * 0.08, 0.3);
@@ -907,25 +1026,21 @@
             }
             return 0.3;
         }
-
+        
         function getColorForValue(value, dataType) {
             if (dataType === 'temperature') {
-                // Blue (cold) to Red (hot): -10°C to 40°C
                 const normalized = Math.max(0, Math.min(1, (value + 10) / 50));
                 return new THREE.Color(normalized, 0.3, 1 - normalized);
             } else if (dataType === 'humidity') {
-                // Light to dark blue: 0% to 100%
                 const normalized = Math.max(0, Math.min(1, value / 100));
                 return new THREE.Color(0.4, 0.6 + normalized * 0.4, 1);
             } else if (dataType === 'pressure') {
-                // Green-yellow gradient: 950 to 1050 hPa
                 const normalized = Math.max(0, Math.min(1, (value - 950) / 100));
                 return new THREE.Color(normalized * 0.6 + 0.4, 1, 0.4);
             }
             return new THREE.Color(1, 1, 1);
         }
-
-        // Event listeners
+        
         document.getElementById('senderSelect').addEventListener('change', () => {
             if (allSendersData) {
                 const selectedSender = document.getElementById('senderSelect').value;
@@ -934,21 +1049,19 @@
                 visualizeData(currentData);
             }
         });
-
+        
         document.getElementById('timeRange').addEventListener('change', loadData);
-
+        
         document.getElementById('visualizationType').addEventListener('change', () => {
             if (currentData) visualizeData(currentData);
         });
-
+        
         document.getElementById('dataType').addEventListener('change', () => {
             if (currentData) visualizeData(currentData);
         });
-
-        // Initialize
+        
         initScene();
         loadData();
     </script>
 </body>
-
 </html>
