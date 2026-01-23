@@ -520,6 +520,19 @@
         let hoveredObject = null;
         let interactiveObjects = [];
         
+        // Performance optimizations
+        let lastFrameTime = 0;
+        const targetFPS = 60;
+        const frameInterval = 1000 / targetFPS;
+        let lastRaycastTime = 0;
+        const raycastInterval = 16; // ~60fps
+        
+        // Geometry cache for reuse
+        const geometryCache = {
+            box: new THREE.BoxGeometry(1.5, 1, 0.3),
+            spheres: {} // Cache for different radii
+        };
+        
         /**
          * Debounce-Funktion zur Performance-Optimierung
          * @param {Function} func - Funktion die debounced werden soll
@@ -562,7 +575,7 @@
             
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.enabled = false;
             container.appendChild(renderer.domElement);
             
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
@@ -570,14 +583,10 @@
             
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
             directionalLight.position.set(50, 50, 50);
-            directionalLight.castShadow = true;
+            directionalLight.castShadow = false;
             scene.add(directionalLight);
             
-            const pointLight = new THREE.PointLight(0xffffff, 1, 150);
-            pointLight.position.set(0, 30, 0);
-            scene.add(pointLight);
-            
-            const gridHelper = new THREE.GridHelper(150, 75, 0xffffff, 0x666666);
+            const gridHelper = new THREE.GridHelper(150, 30, 0xffffff, 0x666666);
             scene.add(gridHelper);
             
             const axesHelper = new THREE.AxesHelper(40);
@@ -587,8 +596,6 @@
             
             // Debounced resize handler für bessere Performance
             window.addEventListener('resize', debounce(onWindowResize, 250));
-            // Verwende native mousemove ohne debounce für flüssigere Interaktion
-            renderer.domElement.addEventListener('mousemove', onMouseMoveHover);
             
             animate();
         }
@@ -599,33 +606,38 @@
                 previousMousePosition = { x: e.clientX, y: e.clientY };
             });
             
+            // COMBINED mousemove Handler - both dragging and hover
             renderer.domElement.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                
-                const deltaX = e.clientX - previousMousePosition.x;
-                const deltaY = e.clientY - previousMousePosition.y;
-                
-                const rotationSpeed = 0.005;
-                
-                const radius = Math.sqrt(
-                    camera.position.x ** 2 + 
-                    camera.position.y ** 2 + 
-                    camera.position.z ** 2
-                );
-                
-                const theta = Math.atan2(camera.position.z, camera.position.x);
-                const phi = Math.acos(camera.position.y / radius);
-                
-                const newTheta = theta + deltaX * rotationSpeed;
-                const newPhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi - deltaY * rotationSpeed));
-                
-                camera.position.x = radius * Math.sin(newPhi) * Math.cos(newTheta);
-                camera.position.y = radius * Math.cos(newPhi);
-                camera.position.z = radius * Math.sin(newPhi) * Math.sin(newTheta);
-                
-                camera.lookAt(0, 0, 0);
-                
-                previousMousePosition = { x: e.clientX, y: e.clientY };
+                if (isDragging) {
+                    // Rotation logic
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+                    
+                    const rotationSpeed = 0.005;
+                    
+                    const radius = Math.sqrt(
+                        camera.position.x ** 2 + 
+                        camera.position.y ** 2 + 
+                        camera.position.z ** 2
+                    );
+                    
+                    const theta = Math.atan2(camera.position.z, camera.position.x);
+                    const phi = Math.acos(camera.position.y / radius);
+                    
+                    const newTheta = theta + deltaX * rotationSpeed;
+                    const newPhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi - deltaY * rotationSpeed));
+                    
+                    camera.position.x = radius * Math.sin(newPhi) * Math.cos(newTheta);
+                    camera.position.y = radius * Math.cos(newPhi);
+                    camera.position.z = radius * Math.sin(newPhi) * Math.sin(newTheta);
+                    
+                    camera.lookAt(0, 0, 0);
+                    
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                } else {
+                    // Hover/Raycasting logic (throttled)
+                    onMouseMoveHover(e);
+                }
             });
             
             renderer.domElement.addEventListener('mouseup', () => {
@@ -649,6 +661,13 @@
                 hideTooltip();
                 return;
             }
+            
+            // Throttle raycasting to ~60fps
+            const now = Date.now();
+            if (now - lastRaycastTime < raycastInterval) {
+                return;
+            }
+            lastRaycastTime = now;
             
             const rect = renderer.domElement.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -728,9 +747,16 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
         
-        function animate() {
+        function animate(currentTime = 0) {
             requestAnimationFrame(animate);
-            renderer.render(scene, camera);
+            
+            const deltaTime = currentTime - lastFrameTime;
+            
+            // Limit to target FPS
+            if (deltaTime >= frameInterval) {
+                renderer.render(scene, camera);
+                lastFrameTime = currentTime - (deltaTime % frameInterval);
+            }
         }
         
         async function loadData() {
@@ -1025,8 +1051,6 @@
             });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(x, height / 2, z);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
             mesh.userData = metadata;
             scene.add(mesh);
             interactiveObjects.push(mesh);
@@ -1035,7 +1059,14 @@
         function createSphere(value, dataType, x, z, metadata) {
             const radius = getScaledRadius(value, dataType);
             const height = getScaledHeight(value, dataType);
-            const geometry = new THREE.SphereGeometry(radius, 16, 16);
+            const cacheKey = Math.round(radius * 10); // Round to 0.1
+            
+            // Get geometry from cache or create new
+            if (!geometryCache.spheres[cacheKey]) {
+                geometryCache.spheres[cacheKey] = new THREE.SphereGeometry(cacheKey / 10, 8, 8);
+            }
+            
+            const geometry = geometryCache.spheres[cacheKey];
             const material = new THREE.MeshPhongMaterial({
                 color: getColorForValue(value, dataType),
                 emissive: getColorForValue(value, dataType),
@@ -1044,8 +1075,6 @@
             });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(x, height * 0.5, z);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
             mesh.userData = metadata;
             scene.add(mesh);
             interactiveObjects.push(mesh);
