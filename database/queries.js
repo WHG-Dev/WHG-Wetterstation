@@ -234,6 +234,9 @@ function getHourlyAverages(senderId, hours = 24) {
  * @returns {Promise<Array>}
  */
 function getHourlySamples(senderId, hours = 5) {
+  // Validate hours parameter to prevent SQL injection
+  const safeHours = parseInt(hours) || 5;
+  
   return getAll(
     `SELECT t.*
      FROM weather_data t
@@ -242,7 +245,7 @@ function getHourlySamples(senderId, hours = 5) {
               MIN(unix_timestamp) AS min_unix
        FROM weather_data
        WHERE sender_id = ? 
-         AND unix_timestamp >= strftime('%s', 'now', '-${hours} hours')
+         AND unix_timestamp >= strftime('%s', 'now', '-${safeHours} hours')
        GROUP BY hour
        ORDER BY hour DESC
        LIMIT ?
@@ -250,7 +253,7 @@ function getHourlySamples(senderId, hours = 5) {
           AND t.unix_timestamp = s.min_unix
      WHERE t.sender_id = ?
      ORDER BY t.unix_timestamp ASC`,
-    [senderId, hours, senderId]
+    [senderId, safeHours, senderId]
   );
 }
 
