@@ -235,7 +235,8 @@ function getHourlyAverages(senderId, hours = 24) {
  */
 function getHourlySamples(senderId, hours = 5) {
   // Validate hours parameter to prevent SQL injection
-  const safeHours = parseInt(hours) || 5;
+  const parsedHours = parseInt(hours);
+  const safeHours = Number.isInteger(parsedHours) && parsedHours > 0 ? parsedHours : 5;
   
   return getAll(
     `SELECT t.*
