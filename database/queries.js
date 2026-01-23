@@ -244,11 +244,13 @@ function getHourlySamples(senderId, hours = 5) {
        WHERE sender_id = ? 
          AND unix_timestamp >= strftime('%s', 'now', '-${hours} hours')
        GROUP BY hour
+       ORDER BY hour DESC
+       LIMIT ?
      ) s ON strftime('%Y-%m-%d %H', t.unix_timestamp, 'unixepoch') = s.hour
           AND t.unix_timestamp = s.min_unix
      WHERE t.sender_id = ?
      ORDER BY t.unix_timestamp ASC`,
-    [senderId, senderId]
+    [senderId, hours, senderId]
   );
 }
 
