@@ -20,6 +20,28 @@ const {
 } = require('../database/queries');
 
 // ============================================================================
+// Configuration Constants
+// ============================================================================
+
+/**
+ * Gültige Alert-Typen
+ */
+const VALID_ALERT_TYPES = ['temperature', 'humidity', 'pressure'];
+
+/**
+ * Gültige Alert-Bedingungen
+ */
+const VALID_CONDITIONS = ['>', '<', '>=', '<=', '==', '!='];
+
+/**
+ * Maximale Zeiträume für Datenabfragen (in Stunden)
+ */
+const MAX_HOURS = {
+  STANDARD: 720,      // 30 Tage für normale Abfragen
+  VISUALIZATION: 168  // 7 Tage für Visualisierung (Performance)
+};
+
+// ============================================================================
 // POST Routes - Data Ingestion
 // ============================================================================
 
@@ -182,11 +204,18 @@ router.get('/current/:senderId', async (req, res, next) => {
 
 /**
  * GET /:senderId - Get hourly weather data samples
- * Query params: hours (default: 5)
+ * Query params: hours (default: 5, max: 720 = 30 days)
  */
 router.get('/:senderId', async (req, res, next) => {
   const senderId = req.params.senderId;
-  const hours = parseInt(req.query.hours) || 5;
+  let hours = parseInt(req.query.hours) || 5;
+
+  // Validate hours parameter
+  if (isNaN(hours) || hours < 1) {
+    hours = 5;
+  } else if (hours > MAX_HOURS.STANDARD) {
+    hours = MAX_HOURS.STANDARD;
+  }
 
   try {
     const sender = await getSender(senderId);
@@ -213,11 +242,18 @@ router.get('/:senderId', async (req, res, next) => {
 
 /**
  * GET /:senderId/range - Get all data in a time range
- * Query params: hours (default: 24)
+ * Query params: hours (default: 24, max: 720 = 30 days)
  */
 router.get('/:senderId/range', async (req, res, next) => {
   const senderId = req.params.senderId;
-  const hours = parseInt(req.query.hours) || 24;
+  let hours = parseInt(req.query.hours) || 24;
+
+  // Validate hours parameter
+  if (isNaN(hours) || hours < 1) {
+    hours = 24;
+  } else if (hours > MAX_HOURS.STANDARD) {
+    hours = MAX_HOURS.STANDARD;
+  }
 
   try {
     const sender = await getSender(senderId);
@@ -244,11 +280,18 @@ router.get('/:senderId/range', async (req, res, next) => {
 
 /**
  * GET /:senderId/averages - Get hourly averages
- * Query params: hours (default: 24)
+ * Query params: hours (default: 24, max: 720 = 30 days)
  */
 router.get('/:senderId/averages', async (req, res, next) => {
   const senderId = req.params.senderId;
-  const hours = parseInt(req.query.hours) || 24;
+  let hours = parseInt(req.query.hours) || 24;
+
+  // Validate hours parameter
+  if (isNaN(hours) || hours < 1) {
+    hours = 24;
+  } else if (hours > MAX_HOURS.STANDARD) {
+    hours = MAX_HOURS.STANDARD;
+  }
 
   try {
     const sender = await getSender(senderId);
@@ -350,12 +393,43 @@ router.get('/senders/all', async (req, res, next) => {
 
 /**
  * PUT /senders/:senderId - Update sender information
+ * Body: { name?, location?, description?, is_active? }
  */
 router.put('/senders/:senderId', async (req, res, next) => {
   const senderId = req.params.senderId;
   const { name, location, description, is_active } = req.body;
 
+  // Validation: at least one field must be provided
+  if (!name && !location && !description && is_active === undefined) {
+    return res.status(400).json({
+      status: 'error',
+      error: 'At least one field (name, location, description, is_active) must be provided'
+    });
+  }
+
+  // Validate senderId format
+  if (!senderId || senderId.trim() === '') {
+    return res.status(400).json({
+      status: 'error',
+      error: 'Invalid sender ID'
+    });
+  }
+
+  // Validate is_active if provided
+  if (is_active !== undefined && typeof is_active !== 'boolean' && is_active !== 0 && is_active !== 1) {
+    return res.status(400).json({
+      status: 'error',
+      error: 'is_active must be a boolean or 0/1'
+    });
+  }
+
   try {
+    // Check if sender exists
+    const existingSender = await getSender(senderId);
+    if (!existingSender) {
+      return next(createError(404, `Sender nicht gefunden: ${senderId}`));
+    }
+
     await updateSender(senderId, { name, location, description, is_active });
     
     const updated = await getSender(senderId);
@@ -380,15 +454,49 @@ router.put('/senders/:senderId', async (req, res, next) => {
 
 /**
  * POST /alerts - Create a new alert
+ * Body: { sender_id, alert_type, condition, threshold_value }
  */
 router.post('/alerts', async (req, res, next) => {
   const { sender_id, alert_type, condition, threshold_value } = req.body;
 
+  // Input Validation
+  if (!sender_id || !alert_type || !condition || threshold_value === undefined) {
+    return res.status(400).json({
+      status: 'error',
+      error: 'Missing required fields: sender_id, alert_type, condition, threshold_value'
+    });
+  }
+
+  // Validate alert_type
+  if (!VALID_ALERT_TYPES.includes(alert_type)) {
+    return res.status(400).json({
+      status: 'error',
+      error: `Invalid alert_type. Must be one of: ${VALID_ALERT_TYPES.join(', ')}`
+    });
+  }
+
+  // Validate condition
+  if (!VALID_CONDITIONS.includes(condition)) {
+    return res.status(400).json({
+      status: 'error',
+      error: `Invalid condition. Must be one of: ${VALID_CONDITIONS.join(', ')}`
+    });
+  }
+
+  // Validate threshold_value is a number
+  const threshold = parseFloat(threshold_value);
+  if (isNaN(threshold)) {
+    return res.status(400).json({
+      status: 'error',
+      error: 'threshold_value must be a valid number'
+    });
+  }
+
   try {
-    const result = await createAlert({ sender_id, alert_type, condition, threshold_value });
+    const result = await createAlert({ sender_id, alert_type, condition, threshold_value: threshold });
     
     await logEvent('info', 'alert_created', 
-      `Alert erstellt: ${alert_type} ${condition} ${threshold_value}`, 
+      `Alert erstellt: ${alert_type} ${condition} ${threshold}`, 
       sender_id
     );
     
@@ -428,10 +536,17 @@ router.get('/alerts/:senderId', async (req, res, next) => {
 
 /**
  * GET /visualization/data - Get all data for all senders for 3D visualization
- * Query params:  hours (default: 24)
+ * Query params: hours (default: 24, max: 168 = 7 days for performance)
  */
 router.get('/visualization/data', async (req, res, next) => {
-  const hours = parseInt(req.query.hours) || 24;
+  let hours = parseInt(req.query.hours) || 24;
+  
+  // Validate hours parameter (limit for visualization performance)
+  if (isNaN(hours) || hours < 1) {
+    hours = 24;
+  } else if (hours > MAX_HOURS.VISUALIZATION) {
+    hours = MAX_HOURS.VISUALIZATION;
+  }
   
   try {
     const senders = await getAllSenders();
