@@ -940,15 +940,15 @@
                     };
                     
                     if (vizType === 'bars') {
-                        createBar(value, dataType, xOffset, zPosition, metadata);
+                        createBar(value, dataType, xOffset, zPosition, metadata, minValue, maxValue);
                     } else if (vizType === 'spheres') {
-                        createSphere(value, dataType, xOffset, zPosition, metadata);
+                        createSphere(value, dataType, xOffset, zPosition, metadata, minValue, maxValue);
                     } else if (vizType === 'lines' && pointIndex > 0) {
                         const prevPoint = dataPoints[pointIndex - 1];
                         const prevValue = prevPoint[dataType] || 0;
                         const prevTimestamp = prevPoint.unix_timestamp || prevPoint.unix;
                         const prevZ = ((prevTimestamp - minTime) * timeScale) - (zRange / 2);
-                        createLine(prevValue, value, dataType, xOffset, prevZ, zPosition);
+                        createLine(prevValue, value, dataType, xOffset, prevZ, zPosition, minValue, maxValue);
                     }
                 });
                 
@@ -968,7 +968,8 @@
             
             for (let i = 0; i < labelCount; i++) {
                 const value = minValue + (step * i);
-                const height = getScaledHeight(value, dataType);
+                // Use the same scaling function as for objects
+                const height = getScaledHeight(value, minValue, maxValue);
                 const y = height * 0.5;
                 
                 let displayValue = value.toFixed(dataType === 'pressure' ? 0 : 1);
@@ -1040,8 +1041,8 @@
             scene.add(sprite);
         }
         
-        function createBar(value, dataType, x, z, metadata) {
-            const height = getScaledHeight(value, dataType);
+        function createBar(value, dataType, x, z, metadata, minValue, maxValue) {
+            const height = getScaledHeight(value, minValue, maxValue);
             const geometry = new THREE.BoxGeometry(1.5, height, 0.3);
             const material = new THREE.MeshPhongMaterial({
                 color: getColorForValue(value, dataType),
@@ -1056,9 +1057,9 @@
             interactiveObjects.push(mesh);
         }
         
-        function createSphere(value, dataType, x, z, metadata) {
-            const radius = getScaledRadius(value, dataType);
-            const height = getScaledHeight(value, dataType);
+        function createSphere(value, dataType, x, z, metadata, minValue, maxValue) {
+            const radius = getScaledRadius(value, minValue, maxValue);
+            const height = getScaledHeight(value, minValue, maxValue);
             const cacheKey = Math.round(radius * 10); // Round to 0.1
             
             // Get geometry from cache or create new
@@ -1080,9 +1081,9 @@
             interactiveObjects.push(mesh);
         }
         
-        function createLine(prevValue, value, dataType, x, prevZ, z) {
-            const prevHeight = getScaledHeight(prevValue, dataType);
-            const height = getScaledHeight(value, dataType);
+        function createLine(prevValue, value, dataType, x, prevZ, z, minValue, maxValue) {
+            const prevHeight = getScaledHeight(prevValue, minValue, maxValue);
+            const height = getScaledHeight(value, minValue, maxValue);
             
             const points = [];
             points.push(new THREE.Vector3(x, prevHeight * 0.5, prevZ));
@@ -1097,26 +1098,38 @@
             scene.add(line);
         }
         
-        function getScaledHeight(value, dataType) {
-            if (dataType === 'temperature') {
-                return Math.max(value * 0.8, 0.5);
-            } else if (dataType === 'humidity') {
-                return Math.max(value * 0.3, 0.5);
-            } else if (dataType === 'pressure') {
-                return Math.max((value - 900) * 0.05, 0.5);
+        function getScaledHeight(value, minValue, maxValue) {
+            // Linear scaling to a fixed range
+            const MIN_HEIGHT = 0.5;
+            const MAX_HEIGHT = 40;
+            
+            // Avoid division by zero
+            if (maxValue === minValue) {
+                return MIN_HEIGHT;
             }
-            return 0.5;
+            
+            // Normalize value to 0-1 range, then scale to MIN_HEIGHT to MAX_HEIGHT
+            const normalized = (value - minValue) / (maxValue - minValue);
+            const height = normalized * (MAX_HEIGHT - MIN_HEIGHT) + MIN_HEIGHT;
+            
+            return Math.max(height, MIN_HEIGHT);
         }
         
-        function getScaledRadius(value, dataType) {
-            if (dataType === 'temperature') {
-                return Math.max(value * 0.08, 0.3);
-            } else if (dataType === 'humidity') {
-                return Math.max(value * 0.03, 0.3);
-            } else if (dataType === 'pressure') {
-                return Math.max((value - 900) * 0.005, 0.3);
+        function getScaledRadius(value, minValue, maxValue) {
+            // Linear scaling for radius
+            const MIN_RADIUS = 0.3;
+            const MAX_RADIUS = 3.0;
+            
+            // Avoid division by zero
+            if (maxValue === minValue) {
+                return MIN_RADIUS;
             }
-            return 0.3;
+            
+            // Normalize value to 0-1 range, then scale to MIN_RADIUS to MAX_RADIUS
+            const normalized = (value - minValue) / (maxValue - minValue);
+            const radius = normalized * (MAX_RADIUS - MIN_RADIUS) + MIN_RADIUS;
+            
+            return Math.max(radius, MIN_RADIUS);
         }
         
         function getColorForValue(value, dataType) {
