@@ -969,7 +969,7 @@
             for (let i = 0; i < labelCount; i++) {
                 const value = minValue + (step * i);
                 // Use the same scaling function as for objects
-                const height = getScaledHeight(value, dataType, minValue, maxValue);
+                const height = getScaledHeight(value, minValue, maxValue);
                 const y = height * 0.5;
                 
                 let displayValue = value.toFixed(dataType === 'pressure' ? 0 : 1);
@@ -1042,7 +1042,7 @@
         }
         
         function createBar(value, dataType, x, z, metadata, minValue, maxValue) {
-            const height = getScaledHeight(value, dataType, minValue, maxValue);
+            const height = getScaledHeight(value, minValue, maxValue);
             const geometry = new THREE.BoxGeometry(1.5, height, 0.3);
             const material = new THREE.MeshPhongMaterial({
                 color: getColorForValue(value, dataType),
@@ -1058,8 +1058,8 @@
         }
         
         function createSphere(value, dataType, x, z, metadata, minValue, maxValue) {
-            const radius = getScaledRadius(value, dataType, minValue, maxValue);
-            const height = getScaledHeight(value, dataType, minValue, maxValue);
+            const radius = getScaledRadius(value, minValue, maxValue);
+            const height = getScaledHeight(value, minValue, maxValue);
             const cacheKey = Math.round(radius * 10); // Round to 0.1
             
             // Get geometry from cache or create new
@@ -1082,8 +1082,8 @@
         }
         
         function createLine(prevValue, value, dataType, x, prevZ, z, minValue, maxValue) {
-            const prevHeight = getScaledHeight(prevValue, dataType, minValue, maxValue);
-            const height = getScaledHeight(value, dataType, minValue, maxValue);
+            const prevHeight = getScaledHeight(prevValue, minValue, maxValue);
+            const height = getScaledHeight(value, minValue, maxValue);
             
             const points = [];
             points.push(new THREE.Vector3(x, prevHeight * 0.5, prevZ));
@@ -1098,7 +1098,7 @@
             scene.add(line);
         }
         
-        function getScaledHeight(value, dataType, minValue, maxValue) {
+        function getScaledHeight(value, minValue, maxValue) {
             // Linear scaling to a fixed range
             const MIN_HEIGHT = 0.5;
             const MAX_HEIGHT = 40;
@@ -1115,7 +1115,7 @@
             return Math.max(height, MIN_HEIGHT);
         }
         
-        function getScaledRadius(value, dataType, minValue, maxValue) {
+        function getScaledRadius(value, minValue, maxValue) {
             // Linear scaling for radius
             const MIN_RADIUS = 0.3;
             const MAX_RADIUS = 3.0;
