@@ -1,3 +1,4 @@
 node_modules/
 .idea
 weather.db
+.env
