@@ -1082,7 +1082,7 @@
                 shininess: 50
             });
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(x, height * 0.5, z);
+            mesh.position.set(x, height, z);
             mesh.userData = metadata;
             scene.add(mesh);
             interactiveObjects.push(mesh);
@@ -1093,8 +1093,8 @@
             const height = getScaledHeight(value, minValue, maxValue);
             
             const points = [];
-            points.push(new THREE.Vector3(x, prevHeight * 0.5, prevZ));
-            points.push(new THREE.Vector3(x, height * 0.5, z));
+            points.push(new THREE.Vector3(x, prevHeight, prevZ));
+            points.push(new THREE.Vector3(x, height, z));
             
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             const material = new THREE.LineBasicMaterial({
