@@ -533,6 +533,12 @@
             spheres: {} // Cache for different radii
         };
         
+        // Scaling constants for 3D objects
+        const MIN_HEIGHT = 0.5;
+        const MAX_HEIGHT = 40;
+        const MIN_RADIUS = 0.3;
+        const MAX_RADIUS = 3.0;
+        
         /**
          * Debounce-Funktion zur Performance-Optimierung
          * @param {Function} func - Funktion die debounced werden soll
@@ -972,7 +978,8 @@
                 const height = getScaledHeight(value, minValue, maxValue);
                 const y = height * 0.5;
                 
-                let displayValue = value.toFixed(dataType === 'pressure' ? 0 : 1);
+                // Round to integer for all data types
+                let displayValue = Math.round(value);
                 createSmallLabel(`${displayValue}${unit}`, x, y, 0, 0.8);
             }
         }
@@ -1100,9 +1107,6 @@
         
         function getScaledHeight(value, minValue, maxValue) {
             // Linear scaling to a fixed range
-            const MIN_HEIGHT = 0.5;
-            const MAX_HEIGHT = 40;
-            
             // Avoid division by zero
             if (maxValue === minValue) {
                 return MIN_HEIGHT;
@@ -1117,9 +1121,6 @@
         
         function getScaledRadius(value, minValue, maxValue) {
             // Linear scaling for radius
-            const MIN_RADIUS = 0.3;
-            const MAX_RADIUS = 3.0;
-            
             // Avoid division by zero
             if (maxValue === minValue) {
                 return MIN_RADIUS;
