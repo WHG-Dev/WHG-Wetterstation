@@ -76,7 +76,7 @@ const limiter = rateLimit({
 });
 
 // Rate Limiter auf alle Requests anwenden
-server.use('/', limiter);
+server.use('/api/weather', limiter);
 
 // ============================================================================
 // Middleware Setup
