@@ -100,7 +100,7 @@ if (fs.existsSync(distPath)) {
       },
     })
   );
-  server.use(express.static(distPath));
+  //server.use(express.static(distPath));
   console.log('✅ Static files configured');
 } else {
   console.log('⚠️  Website directory not found:', distPath);
