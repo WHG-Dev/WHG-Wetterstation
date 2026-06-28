@@ -2,10 +2,7 @@
 	path = website
 	url = https://github.com/WHG-Dev/website.git
 	branch = main
-[submodule "website"]
-	path = websitev2
+[submodule "website-v2"]
+	path = website-v2
 	url = https://github.com/Darkstone245/Website-v2.git
 	branch = main
-[submodule "Website-v2"]
-	path = Website-v2
-	url = https://github.com/Darkstone245/Website-v2.git
