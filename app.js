@@ -91,23 +91,30 @@ server.use(express.urlencoded({ extended: false }));
 // Static file serving with Brotli/Gzip compression
 const distPath = path.join(__dirname, 'Website-v2/dist/')
 
+const distPath = path.join(__dirname, 'website-v2/dist/')
+
 if (fs.existsSync(distPath)) {
   server.use(
     expressStaticGzip(distPath, {
       enableBrotli: true,
       orderPreference: ['br', 'gz'],
-      index: 'index.html',
+
+      // wichtig für korrektes Verhalten bei index.html
       serveStatic: {
-        index: true,
+        index: false,
       },
-      setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.br')) {
+
+      setHeaders: (res, path) => {
+        if (path.endsWith('.br')) {
           res.setHeader('Content-Encoding', 'br')
         }
+
         res.setHeader('Cache-Control', 'public, max-age=31536000')
       },
     })
   )
+
+  console.log('✅ Static files configured with Brotli')
 }
 
 // ============================================================================
