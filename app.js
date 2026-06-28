@@ -89,21 +89,25 @@ server.use(cookieParser());
 server.use(express.urlencoded({ extended: false }));
 
 // Static file serving with Brotli/Gzip compression
-const distPath = path.join(__dirname, 'website-v2/dist/');
+const distPath = path.join(__dirname, 'website-v2/dist/')
+
 if (fs.existsSync(distPath)) {
   server.use(
     expressStaticGzip(distPath, {
       enableBrotli: true,
       orderPreference: ['br', 'gz'],
-      setHeaders: (res) => {
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
+      index: 'index.html',
+      serveStatic: {
+        index: true,
+      },
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.br')) {
+          res.setHeader('Content-Encoding', 'br')
+        }
+        res.setHeader('Cache-Control', 'public, max-age=31536000')
       },
     })
-  );
-  //server.use(express.static(distPath));
-  console.log('✅ Static files configured');
-} else {
-  console.log('⚠️  Website directory not found:', distPath);
+  )
 }
 
 // ============================================================================
