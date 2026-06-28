@@ -91,7 +91,6 @@ server.use(express.urlencoded({ extended: false }));
 // Static file serving with Brotli/Gzip compression
 const distPath = path.join(__dirname, 'Website-v2/dist/')
 
-const distPath = path.join(__dirname, 'website-v2/dist/')
 
 if (fs.existsSync(distPath)) {
   server.use(
