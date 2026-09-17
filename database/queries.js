@@ -220,7 +220,11 @@ function getHourlyAverages(senderId, hours = 24) {
        COUNT(*) as measurements
      FROM weather_data
      WHERE sender_id = ? 
-       AND unix_timestamp >= strftime('%s', 'now', '-${hours} hours')
+       AND unix_timestamp >= (
+              SELECT MAX(unix_timestamp)
+              FROM weather_data
+              WHERE sender_id = ?
+          ) - (? * 3600)
      GROUP BY hour
      ORDER BY hour ASC`,
     [senderId]
